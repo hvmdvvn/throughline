@@ -7,6 +7,8 @@ History import (issue #13): ``JiraIssue``, ``SyncState``; import progress on ``J
 Changelog import (issue #14): ``JiraStatusTransition``; sibling sync_state + connection progress.
 Canonical normalization (issue #15): ``Issue``, ``IssueTransition`` — no Jira field ids.
 Cycle time outcomes (issue #17): ``Outcome`` — stored time-in-status / cycle time.
+Reopen metrics (issue #18): ``ReopenEvent``, ``ReopenAggregate`` — done→active
+detections with evidence refs; frequency aggregates by epic/project/month.
 ``DevPgvectorProof`` is a disposable foundation table used only to prove
 pgvector round-trips (issue #3). It is not a product embeddings table.
 """
@@ -15,13 +17,14 @@ from __future__ import annotations
 
 import enum
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any
 
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import (
     BigInteger,
     Boolean,
+    Date,
     DateTime,
     Enum,
     Float,
@@ -476,6 +479,8 @@ class Issue(TenantScopedMixin, Base):
     # Connector-facing issue identifier (e.g. Jira issue key) — not a custom field id.
     external_key: Mapped[str] = mapped_column(String(64), nullable=False)
     project_key: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    # Parent epic external key when known (Phase 0 reopen aggregates; optional).
+    epic_key: Mapped[str | None] = mapped_column(String(64), nullable=True)
     summary: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[str | None] = mapped_column(String(255), nullable=True)
     issue_type: Mapped[str | None] = mapped_column(String(255), nullable=True)
@@ -564,6 +569,74 @@ class Outcome(TenantScopedMixin, Base):
         nullable=True,
     )
     transitions_fingerprint: Mapped[str] = mapped_column(String(64), nullable=False)
+
+
+class ReopenEvent(TenantScopedMixin, Base):
+    """One done→active status transition detection (issue #18).
+
+    Evidence coordinates (``evidence_external_event_id`` / ``evidence_event_index``)
+    match canonical ``issue_transitions`` so UI drill-down stays stable.
+    Soft-delete only. No cause or blame fields.
+    """
+
+    __tablename__ = "reopen_events"
+    __table_args__ = (
+        UniqueConstraint(
+            "org_id",
+            "external_key",
+            "evidence_external_event_id",
+            "evidence_event_index",
+            name="uq_reopen_events_org_key_evidence",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+    external_key: Mapped[str] = mapped_column(String(64), nullable=False)
+    # Empty string when unknown — keeps unique aggregates simple.
+    project_key: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    epic_key: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    transitioned_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    from_status: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    to_status: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    evidence_external_event_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    evidence_event_index: Mapped[int] = mapped_column(Integer, nullable=False)
+    # Stable drill-down token: issue:{key}/transition:{event_id}:{index}
+    evidence_ref: Mapped[str] = mapped_column(String(255), nullable=False)
+
+
+class ReopenAggregate(TenantScopedMixin, Base):
+    """Reopen frequency rollup by epic or project and calendar month (issue #18).
+
+    Counts only — no causal labels. Soft-delete only.
+    """
+
+    __tablename__ = "reopen_aggregates"
+    __table_args__ = (
+        UniqueConstraint(
+            "org_id",
+            "period_start",
+            "period_grain",
+            "dimension",
+            "dimension_key",
+            name="uq_reopen_aggregates_org_period_dim",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+    period_start: Mapped[date] = mapped_column(Date, nullable=False)
+    period_grain: Mapped[str] = mapped_column(String(16), nullable=False, default="month")
+    # ``epic`` or ``project``.
+    dimension: Mapped[str] = mapped_column(String(32), nullable=False)
+    dimension_key: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    reopen_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
 
 class DevPgvectorProof(Base):

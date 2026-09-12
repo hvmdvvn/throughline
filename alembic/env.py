@@ -23,6 +23,8 @@ from throughline.db.models import (  # noqa: F401 — register metadata
     Org,
     Outcome,
     Project,
+    ReopenAggregate,
+    ReopenEvent,
     SyncState,
     User,
 )

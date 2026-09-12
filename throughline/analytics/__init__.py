@@ -10,15 +10,35 @@ from throughline.analytics.cycle_time import (
     compute_cycle_time,
     store_outcome,
 )
+from throughline.analytics.reopen import (
+    AggregateDimension,
+    IssueDimensions,
+    ReopenDetection,
+    aggregate_detections,
+    compute_and_store_reopens_for_org,
+    detect_reopens,
+    is_reopen_transition,
+    rebuild_reopen_aggregates,
+    store_reopen_detections,
+)
 from throughline.analytics.status import StatusLane, classify_status, status_map_classifier
 
 __all__ = [
+    "AggregateDimension",
     "CyclePass",
     "CycleTimeResult",
+    "IssueDimensions",
+    "ReopenDetection",
     "StatusLane",
+    "aggregate_detections",
     "classify_status",
     "compute_and_store_outcomes_for_org",
+    "compute_and_store_reopens_for_org",
     "compute_cycle_time",
+    "detect_reopens",
+    "is_reopen_transition",
+    "rebuild_reopen_aggregates",
     "status_map_classifier",
     "store_outcome",
+    "store_reopen_detections",
 ]
