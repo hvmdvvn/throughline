@@ -16,5 +16,6 @@ def test_settings_load() -> None:
     assert isinstance(loaded, Settings)
     assert loaded.app_name == "Throughline"
     assert isinstance(settings.debug, bool)
+    assert loaded.environment.value == "development"
     assert "postgresql" in loaded.database_url
     assert loaded.redis_url.startswith("redis://")

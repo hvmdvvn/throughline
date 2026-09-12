@@ -36,7 +36,7 @@ Requires Python 3.12+. Create and activate a virtualenv first (`python -m venv .
 | Lint | TBD (ruff once CI lands) |
 | Format | TBD |
 
-Copy `.env.example` to `.env` for local overrides (optional; Compose has safe defaults). Never commit secrets.
+Copy `.env.example` to `.env` for local overrides (optional; Compose has safe defaults). Set `ENVIRONMENT=production` only with real `DATABASE_URL` / `REDIS_URL` — production refuses to boot if those are unset. Never commit secrets.
 
 After changing the Postgres image (e.g. to enable pgvector), recreate the `db` volume if an older Postgres data dir remains: `docker compose down -v` then `docker compose up --build`.
 

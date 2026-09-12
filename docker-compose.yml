@@ -47,6 +47,7 @@ services:
     ports:
       - "${API_PORT:-8000}:8000"
     environment:
+      ENVIRONMENT: ${ENVIRONMENT:-development}
       DATABASE_URL: ${DATABASE_URL:-postgresql://throughline:throughline@db:5432/throughline}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       APP_NAME: ${APP_NAME:-Throughline}
@@ -70,6 +71,7 @@ services:
     volumes:
       - .:/app
     environment:
+      ENVIRONMENT: ${ENVIRONMENT:-development}
       DATABASE_URL: ${DATABASE_URL:-postgresql://throughline:throughline@db:5432/throughline}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       APP_NAME: ${APP_NAME:-Throughline}

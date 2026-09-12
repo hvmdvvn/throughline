@@ -103,13 +103,18 @@ pytest
 
 Documented in [`.env.example`](.env.example). Do not commit real secrets; `.env` is gitignored.
 
-| Variable | Purpose |
-|---|---|
-| `DATABASE_URL` | Postgres URL (Compose default uses host `db`) |
-| `REDIS_URL` | Redis URL (Compose default uses host `redis`) |
-| `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | Postgres bootstrap |
-| `APP_NAME` / `DEBUG` | App settings |
+| Variable | Mode | Purpose |
+|---|---|---|
+| `ENVIRONMENT` | both | `development` (default) or `production` |
+| `DATABASE_URL` | **required in production** | Postgres URL (Compose default uses host `db`) |
+| `REDIS_URL` | **required in production** | Redis URL (Compose default uses host `redis`) |
+| `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | Compose | Postgres bootstrap |
+| `APP_NAME` / `DEBUG` | both | App display name / debug flag |
+| `CLERK_SECRET_KEY` / `WORKOS_API_KEY` | optional stubs | Auth provider (issue #8) |
+| `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` | optional stubs | LLM providers (later) |
+
+In **development**, unset `DATABASE_URL` / `REDIS_URL` fall back to localhost defaults suitable for host-side runs (Compose still injects service hostnames). In **production**, starting with those unset raises a validation error and the process exits before serving traffic.
 
 ## Application package
 
-The FastAPI app lives under `throughline/api/`. Settings load from environment variables (with safe defaults) via `throughline.config`. The arq worker settings live under `throughline/workers/`. SQLAlchemy models and session helpers live under `throughline/db/`; schema changes are Alembic migrations under `alembic/versions/` (no Django).
+The FastAPI app lives under `throughline/api/`. Settings use pydantic-settings (`throughline.config`) with development/production modes. The arq worker settings live under `throughline/workers/`. SQLAlchemy models and session helpers live under `throughline/db/`; schema changes are Alembic migrations under `alembic/versions/` (no Django).
