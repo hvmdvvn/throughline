@@ -6,6 +6,7 @@ Jira discovery (issue #12): ``Project``, issue types / statuses / fields, field 
 History import (issue #13): ``JiraIssue``, ``SyncState``; import progress on ``JiraConnection``.
 Changelog import (issue #14): ``JiraStatusTransition``; sibling sync_state + connection progress.
 Canonical normalization (issue #15): ``Issue``, ``IssueTransition`` — no Jira field ids.
+Cycle time outcomes (issue #17): ``Outcome`` — stored time-in-status / cycle time.
 ``DevPgvectorProof`` is a disposable foundation table used only to prove
 pgvector round-trips (issue #3). It is not a product embeddings table.
 """
@@ -15,9 +16,11 @@ from __future__ import annotations
 import enum
 import uuid
 from datetime import datetime
+from typing import Any
 
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import (
+    BigInteger,
     Boolean,
     DateTime,
     Enum,
@@ -29,7 +32,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from throughline.db.base import Base, SoftDeleteMixin, TenantScopedMixin, TimestampMixin
@@ -519,6 +522,48 @@ class IssueTransition(TenantScopedMixin, Base):
     actor_display_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     external_event_id: Mapped[str] = mapped_column(String(64), nullable=False)
     event_index: Mapped[int] = mapped_column(Integer, nullable=False)
+
+
+class Outcome(TenantScopedMixin, Base):
+    """Stored per-issue cycle time and time-in-status (issue #17).
+
+    Computed from canonical ``issue_transitions`` and persisted so Phase 0
+    analytics are not recalculated only at read time. Soft-delete only.
+    ``transitions_fingerprint`` versions the source transition set for
+    idempotent re-runs.
+    """
+
+    __tablename__ = "outcomes"
+    __table_args__ = (
+        UniqueConstraint("org_id", "external_key", name="uq_outcomes_org_external_key"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+    external_key: Mapped[str] = mapped_column(String(64), nullable=False)
+    # Status name → total seconds spent in that status (closed intervals only).
+    time_in_status_seconds: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    # First completed in-progress→done pass duration; null if never completed.
+    cycle_time_seconds: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    pass_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    # List of {started_at, done_at, duration_seconds} for each completed pass.
+    cycle_passes: Mapped[list[Any]] = mapped_column(JSONB, nullable=False)
+    first_in_progress_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    first_done_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    last_done_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    transitions_fingerprint: Mapped[str] = mapped_column(String(64), nullable=False)
 
 
 class DevPgvectorProof(Base):

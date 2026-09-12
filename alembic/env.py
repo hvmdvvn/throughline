@@ -21,6 +21,7 @@ from throughline.db.models import (  # noqa: F401 — register metadata
     JiraStatusTransition,
     Membership,
     Org,
+    Outcome,
     Project,
     SyncState,
     User,
