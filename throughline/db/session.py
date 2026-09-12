@@ -8,6 +8,10 @@ from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from throughline.config import settings
+from throughline.tenancy import register_tenant_enforcement
+
+# Tenancy filters apply to every Session in this process (issue #7).
+register_tenant_enforcement()
 
 
 def sqlalchemy_database_url(url: str | None = None) -> str:

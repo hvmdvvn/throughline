@@ -44,7 +44,9 @@ class TenantScopedMixin(TimestampMixin, SoftDeleteMixin):
     """Mixin for every tenant table except ``orgs`` (plan §3).
 
     Establishes ``org_id`` + timestamps + soft-delete for Membership and all
-    future org-scoped tables. Cross-tenant query enforcement is issue #7.
+    future org-scoped tables. ORM selects against these models are filtered by
+    the current org (and soft-delete) in ``throughline.tenancy`` — do not rely
+    on per-endpoint ``WHERE org_id =`` as the sole enforcement mechanism.
     """
 
     org_id: Mapped[uuid.UUID] = mapped_column(

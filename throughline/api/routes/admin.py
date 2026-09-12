@@ -2,6 +2,11 @@
 
 Not Django admin — FastAPI routes gated by ``require_admin`` (temporary API-key
 stub until issue #8).
+
+``Org`` / ``User`` are not tenant-scoped (no ``org_id`` filter). ``Membership`` is
+tenant-scoped; the platform-admin list uses an explicit
+``skip_tenant_enforcement`` escape hatch so cross-org admin inventory still works
+without a current-org context (see ``throughline.tenancy``).
 """
 
 from __future__ import annotations
@@ -16,6 +21,7 @@ from throughline.api.auth import require_admin
 from throughline.api.deps import get_db
 from throughline.api.schemas import MembershipListItem, OrgListItem, UserListItem
 from throughline.db.models import Membership, Org, User
+from throughline.tenancy import skip_tenant_enforcement
 
 router = APIRouter(
     prefix="/admin",
@@ -42,11 +48,10 @@ def list_users(db: Annotated[Session, Depends(get_db)]) -> list[User]:
 
 @router.get("/memberships", response_model=list[MembershipListItem])
 def list_memberships(db: Annotated[Session, Depends(get_db)]) -> list[Membership]:
-    """List active memberships (soft-deleted rows excluded)."""
-    return list(
-        db.scalars(
-            select(Membership)
-            .where(Membership.deleted_at.is_(None))
-            .order_by(Membership.created_at)
-        ).all()
+    """List active memberships across orgs (platform admin; soft-deleted excluded)."""
+    stmt = skip_tenant_enforcement(
+        select(Membership)
+        .where(Membership.deleted_at.is_(None))
+        .order_by(Membership.created_at)
     )
+    return list(db.scalars(stmt).all())

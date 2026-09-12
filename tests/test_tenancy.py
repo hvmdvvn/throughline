@@ -92,11 +92,14 @@ def _auth_headers() -> dict[str, str]:
 
 
 def test_org_user_membership_relationships(seeded_tenancy, db_session) -> None:
+    from throughline.tenancy import use_org
+
     org = seeded_tenancy["org"]
     user = seeded_tenancy["user"]
     membership = seeded_tenancy["membership"]
 
-    loaded = db_session.scalar(select(Membership).where(Membership.id == membership.id))
+    with use_org(org.id):
+        loaded = db_session.scalar(select(Membership).where(Membership.id == membership.id))
     assert loaded is not None
     assert loaded.org_id == org.id
     assert loaded.user_id == user.id
