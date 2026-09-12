@@ -1,10 +1,11 @@
 """Resumable Jira changelog import for status transitions (issue #14).
 
 For each imported ``jira_issues`` row, fetches ``/issue/{key}/changelog`` via
-``JiraClient``, stores status transitions with timestamps and actors, and
-persists a sibling ``sync_state`` cursor (last completed ``issue_key``) so a
-killed worker resumes without reprocessing the whole set. Progress is mirrored
-onto the org's ``JiraConnection`` for the admin API.
+``JiraClient``, stores status transitions with timestamps and actors, upserts
+description/AC ``issue_field_changes`` for scope metrics (#19), and persists a
+sibling ``sync_state`` cursor (last completed ``issue_key``) so a killed worker
+resumes without reprocessing the whole set. Progress is mirrored onto the org's
+``JiraConnection`` for the admin API.
 """
 
 from __future__ import annotations
@@ -23,6 +24,7 @@ from throughline.connectors.jira.discovery import build_client_for_connection
 from throughline.connectors.jira.service import get_active_connection
 from throughline.db.models import (
     JiraConnection,
+    JiraFieldConcept,
     JiraIssue,
     JiraStatusTransition,
     SyncRunStatus,
@@ -323,6 +325,26 @@ def _store_status_transitions_from_history(
     return stored
 
 
+def _store_spec_field_changes_from_history(
+    db: Session,
+    org_id: uuid.UUID,
+    *,
+    issue_key: str,
+    history: dict[str, Any],
+    field_map: dict[JiraFieldConcept, str | None],
+) -> int:
+    """Upsert description/AC field changes for analytics (issue #19)."""
+    from throughline.ingest.normalize import sync_canonical_field_changes_from_jira_history
+
+    return sync_canonical_field_changes_from_jira_history(
+        db,
+        org_id,
+        issue_key,
+        history,
+        field_map=field_map,
+    )
+
+
 def _import_issue_changelog(
     db: Session,
     client: JiraClient,
@@ -330,8 +352,9 @@ def _import_issue_changelog(
     issue: JiraIssue,
     *,
     page_size: int,
+    field_map: dict[JiraFieldConcept, str | None],
 ) -> int:
-    """Fetch all changelog pages for one issue and store status transitions."""
+    """Fetch all changelog pages for one issue; store status + spec field changes."""
     path = f"/issue/{issue.issue_key}/changelog"
     transitions_stored = 0
     for page in client.iter_pages(path, page_size=page_size, list_key="values"):
@@ -350,6 +373,13 @@ def _import_issue_changelog(
                 org_id,
                 issue_key=issue.issue_key,
                 history=history,
+            )
+            _store_spec_field_changes_from_history(
+                db,
+                org_id,
+                issue_key=issue.issue_key,
+                history=history,
+                field_map=field_map,
             )
     # Canonical transitions for analytics (issue #15) — no Jira field ids.
     # Lazy import avoids cycle: ingest.normalize → connectors.jira → this module.
@@ -427,6 +457,9 @@ def run_changelog_import(
     _mirror_progress_to_connection(connection, sync)
     db.commit()
 
+    from throughline.ingest.normalize import load_org_field_map
+
+    field_map = load_org_field_map(db)
     issues_processed = 0
     transitions_stored = 0
     try:
@@ -445,7 +478,12 @@ def run_changelog_import(
                 )
 
             added = _import_issue_changelog(
-                db, client, org_id, issue, page_size=page_size
+                db,
+                client,
+                org_id,
+                issue,
+                page_size=page_size,
+                field_map=field_map,
             )
             transitions_stored += added
             issues_processed += 1

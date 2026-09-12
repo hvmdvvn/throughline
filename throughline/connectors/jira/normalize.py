@@ -12,7 +12,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 from throughline.db.models import JiraFieldConcept
-from throughline.domain.issues import CanonicalIssue, CanonicalTransition
+from throughline.domain.issues import CanonicalFieldChange, CanonicalIssue, CanonicalTransition
 
 
 def _parse_jira_datetime(value: Any) -> datetime | None:
@@ -43,6 +43,48 @@ def _project_key(fields: Mapping[str, Any]) -> str | None:
         key = project.get("key")
         if isinstance(key, str) and key.strip():
             return key.strip()
+    return None
+
+
+def _epic_key(fields: Mapping[str, Any]) -> str | None:
+    """Parent epic issue key from the standard ``parent`` field.
+
+    When parent issuetype is present and not Epic (e.g. subtask → story),
+    returns ``None``. Missing issuetype (common in search payloads) still
+    treats ``parent.key`` as the epic link.
+    """
+    parent = fields.get("parent")
+    if not isinstance(parent, dict):
+        return None
+    key = parent.get("key")
+    if not isinstance(key, str) or not key.strip():
+        return None
+    parent_fields = parent.get("fields")
+    if isinstance(parent_fields, dict):
+        itype_name = _nested_name(parent_fields.get("issuetype"))
+        if itype_name is not None and itype_name.casefold() != "epic":
+            return None
+    return key.strip()
+
+
+def _canonical_spec_field_name(
+    item: Mapping[str, Any],
+    *,
+    ac_field_id: str | None,
+) -> str | None:
+    """Map one changelog item to ``description`` / ``acceptance_criteria``, or None."""
+    field = item.get("field")
+    field_id = item.get("fieldId")
+    if isinstance(field, str) and field.casefold() == "description":
+        return "description"
+    if isinstance(field_id, str) and field_id == "description":
+        return "description"
+    if ac_field_id:
+        if isinstance(field_id, str) and field_id == ac_field_id:
+            return "acceptance_criteria"
+        # Some Server payloads omit fieldId; match mapped id against field string.
+        if isinstance(field, str) and field == ac_field_id:
+            return "acceptance_criteria"
     return None
 
 
@@ -165,6 +207,7 @@ def map_jira_issue_payload(
         story_points=story_points,
         created_at=_parse_jira_datetime(fields.get("created")),
         updated_at=_parse_jira_datetime(fields.get("updated")),
+        epic_key=_epic_key(fields),
     )
 
 
@@ -215,3 +258,52 @@ def map_jira_status_transition(
         external_event_id=event_id,
         event_index=item_index,
     )
+
+
+def map_jira_changelog_spec_changes(
+    *,
+    issue_key: str,
+    history: Mapping[str, Any],
+    field_map: Mapping[JiraFieldConcept, str | None] | Mapping[str, str | None],
+) -> list[CanonicalFieldChange]:
+    """Extract description/AC edits from one changelog history entry.
+
+    ``event_index`` counts only matched spec-field items within the history
+    (mirrors status-item indexing). Unmapped / non-spec fields are skipped.
+    """
+    key = issue_key.strip()
+    if not key:
+        raise ValueError("issue_key is required")
+    history_id = history.get("id")
+    if history_id is None or not str(history_id).strip():
+        raise ValueError("changelog history missing id")
+    event_id = str(history_id).strip()
+    changed_at = _parse_jira_datetime(history.get("created"))
+    if changed_at is None:
+        raise ValueError(f"changelog history {event_id} missing created")
+
+    concepts = concept_field_map(field_map)
+    ac_field_id = concepts[JiraFieldConcept.ACCEPTANCE_CRITERIA]
+    items = history.get("items")
+    if not isinstance(items, list):
+        return []
+
+    out: list[CanonicalFieldChange] = []
+    spec_index = 0
+    for item in items:
+        if not isinstance(item, Mapping):
+            continue
+        field_name = _canonical_spec_field_name(item, ac_field_id=ac_field_id)
+        if field_name is None:
+            continue
+        out.append(
+            CanonicalFieldChange(
+                external_key=key,
+                changed_at=changed_at,
+                field=field_name,
+                external_event_id=event_id,
+                event_index=spec_index,
+            )
+        )
+        spec_index += 1
+    return out

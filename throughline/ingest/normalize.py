@@ -1,8 +1,10 @@
-"""Persist canonical issues/transitions from connector-stored payloads (issue #15).
+"""Persist canonical issues/transitions/field-changes from connector payloads.
 
 Uses per-org field mappings (#12). Jira payload parsing stays in
 ``throughline.connectors.jira.normalize``; this module upserts domain-shaped
-ORM rows that analytics can read without Jira client types.
+ORM rows that analytics can read without Jira client types. Issue #15 covers
+issues/transitions; issue #19 adds description/AC ``issue_field_changes`` and
+``issues.epic_key`` from parent.
 """
 
 from __future__ import annotations
@@ -14,19 +16,21 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from throughline.connectors.jira.normalize import (
+    map_jira_changelog_spec_changes,
     map_jira_issue_payload,
     map_jira_issue_raw_json,
     map_jira_status_transition,
 )
 from throughline.db.models import (
     Issue,
+    IssueFieldChange,
     IssueTransition,
     JiraFieldConcept,
     JiraFieldMapping,
     JiraIssue,
     JiraStatusTransition,
 )
-from throughline.domain.issues import CanonicalIssue, CanonicalTransition
+from throughline.domain.issues import CanonicalFieldChange, CanonicalIssue, CanonicalTransition
 from throughline.tenancy import skip_tenant_enforcement
 
 
@@ -62,6 +66,7 @@ def upsert_canonical_issue(db: Session, org_id: uuid.UUID, issue: CanonicalIssue
             org_id=org_id,
             external_key=issue.external_key,
             project_key=issue.project_key,
+            epic_key=issue.epic_key,
             summary=issue.summary,
             status=issue.status,
             issue_type=issue.issue_type,
@@ -75,6 +80,7 @@ def upsert_canonical_issue(db: Session, org_id: uuid.UUID, issue: CanonicalIssue
 
     existing.deleted_at = None
     existing.project_key = issue.project_key
+    existing.epic_key = issue.epic_key
     existing.summary = issue.summary
     existing.status = issue.status
     existing.issue_type = issue.issue_type
@@ -135,6 +141,72 @@ def upsert_canonical_transition(
     return False
 
 
+def upsert_canonical_field_change(
+    db: Session,
+    org_id: uuid.UUID,
+    change: CanonicalFieldChange,
+) -> bool:
+    """Insert or revive one field-change row. Returns True when newly created."""
+    existing = db.scalar(
+        select(IssueFieldChange).where(
+            IssueFieldChange.external_key == change.external_key,
+            IssueFieldChange.external_event_id == change.external_event_id,
+            IssueFieldChange.event_index == change.event_index,
+        )
+    )
+    if existing is None:
+        existing = db.scalar(
+            skip_tenant_enforcement(
+                select(IssueFieldChange).where(
+                    IssueFieldChange.org_id == org_id,
+                    IssueFieldChange.external_key == change.external_key,
+                    IssueFieldChange.external_event_id == change.external_event_id,
+                    IssueFieldChange.event_index == change.event_index,
+                )
+            )
+        )
+
+    if existing is None:
+        db.add(
+            IssueFieldChange(
+                org_id=org_id,
+                external_key=change.external_key,
+                changed_at=change.changed_at,
+                field=change.field,
+                external_event_id=change.external_event_id,
+                event_index=change.event_index,
+            )
+        )
+        return True
+
+    existing.deleted_at = None
+    existing.changed_at = change.changed_at
+    existing.field = change.field
+    return False
+
+
+def sync_canonical_field_changes_from_jira_history(
+    db: Session,
+    org_id: uuid.UUID,
+    issue_key: str,
+    history: dict[str, Any],
+    *,
+    field_map: dict[JiraFieldConcept, str | None] | None = None,
+) -> int:
+    """Upsert description/AC field changes from one Jira changelog history entry."""
+    concepts = field_map if field_map is not None else load_org_field_map(db)
+    changes = map_jira_changelog_spec_changes(
+        issue_key=issue_key,
+        history=history,
+        field_map=concepts,
+    )
+    created = 0
+    for change in changes:
+        if upsert_canonical_field_change(db, org_id, change):
+            created += 1
+    return created
+
+
 def sync_canonical_issue_from_jira_payload(
     db: Session,
     org_id: uuid.UUID,
@@ -171,6 +243,7 @@ def sync_canonical_issue_from_jira_row(
             story_points=None,
             created_at=jira_issue.jira_created_at,
             updated_at=jira_issue.jira_updated_at,
+            epic_key=None,
         )
     return upsert_canonical_issue(db, org_id, canonical)
 

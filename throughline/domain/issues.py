@@ -23,6 +23,8 @@ class CanonicalIssue:
     story_points: float | None
     created_at: datetime | None
     updated_at: datetime | None
+    # Parent epic external key when known (late-child / reopen slices).
+    epic_key: str | None = None
 
 
 @dataclass(frozen=True, slots=True)

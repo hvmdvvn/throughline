@@ -50,6 +50,7 @@ def _issue_row_to_canonical(row: Issue) -> CanonicalIssue:
         story_points=row.story_points,
         created_at=row.source_created_at,
         updated_at=row.source_updated_at,
+        epic_key=row.epic_key,
     )
 
 

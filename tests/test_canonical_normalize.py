@@ -199,6 +199,7 @@ def test_missing_mapped_fields_are_null_not_crash():
     assert canonical.acceptance_criteria is None
     assert canonical.story_points is None
     assert canonical.summary == "Ship canonical normalization"
+    assert canonical.epic_key is None
 
     # Mapped field id present but value absent on payload.
     other = {
@@ -212,6 +213,42 @@ def test_missing_mapped_fields_are_null_not_crash():
     partial = map_jira_issue_payload(other, SITE_A_MAP)
     assert partial.acceptance_criteria is None
     assert partial.story_points is None
+
+
+def test_parent_epic_key_normalized_from_payload():
+    payload = _load("normalize_site_a_issue.json")
+    with_parent = {
+        **payload,
+        "fields": {
+            **payload["fields"],
+            "parent": {
+                "key": "EPIC-9",
+                "fields": {"issuetype": {"name": "Epic"}},
+            },
+        },
+    }
+    canonical = map_jira_issue_payload(with_parent, SITE_A_MAP)
+    assert canonical.epic_key == "EPIC-9"
+
+    # Subtask under a story is not an epic child.
+    under_story = {
+        **payload,
+        "fields": {
+            **payload["fields"],
+            "parent": {
+                "key": "STORY-99",
+                "fields": {"issuetype": {"name": "Story"}},
+            },
+        },
+    }
+    assert map_jira_issue_payload(under_story, SITE_A_MAP).epic_key is None
+
+    # Parent key without issuetype (common search shape) still counts as epic link.
+    bare_parent = {
+        **payload,
+        "fields": {**payload["fields"], "parent": {"key": "EPIC-2", "id": "1"}},
+    }
+    assert map_jira_issue_payload(bare_parent, SITE_A_MAP).epic_key == "EPIC-2"
 
 
 def test_persist_and_read_canonical_without_jira_client(db_session, org_ready):
@@ -301,6 +338,7 @@ def test_persist_and_read_canonical_without_jira_client(db_session, org_ready):
             story_points=5.0,
             created_at=issues[0].created_at,
             updated_at=issues[0].updated_at,
+            epic_key=None,
         )
 
         transitioned_at = datetime(2024, 2, 1, 15, 0, tzinfo=UTC)

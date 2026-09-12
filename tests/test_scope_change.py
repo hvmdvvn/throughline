@@ -40,6 +40,11 @@ from throughline.db.models import (
 )
 from throughline.db.session import get_session_factory, sqlalchemy_database_url
 from throughline.domain.issues import CanonicalFieldChange, CanonicalTransition
+from throughline.ingest.normalize import (
+    sync_canonical_field_changes_from_jira_history,
+    sync_canonical_issue_from_jira_payload,
+    upsert_canonical_transition,
+)
 from throughline.tenancy import use_org
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -453,3 +458,144 @@ def test_store_never_started_epic_creates_no_late_events(db_session, org_ready):
         assert db_session.scalars(select(LateChildEvent)).all() == []
         assert db_session.scalars(select(SpecChangeEvent)).all() == []
         assert db_session.scalars(select(ScopeChangeAggregate)).all() == []
+
+
+def test_import_shaped_data_produces_late_child_and_spec_signals(db_session, org_ready):
+    """Normalize + changelog field path must feed scope metrics (QA #19 gap)."""
+    org = org_ready
+    ac_field = "customfield_10010"
+    field_map = {
+        "acceptance_criteria": ac_field,
+        "story_points": None,
+    }
+
+    early_payload = {
+        "key": "C-1",
+        "fields": {
+            "summary": "Early child",
+            "status": {"name": "To Do"},
+            "issuetype": {"name": "Story"},
+            "project": {"key": "PROJ"},
+            "created": "2024-01-01T12:00:00.000+0000",
+            "updated": "2024-01-01T12:00:00.000+0000",
+            "parent": {"key": "EPIC-9", "fields": {"issuetype": {"name": "Epic"}}},
+        },
+    }
+    late_payload = {
+        "key": "C-LATE",
+        "fields": {
+            "summary": "Late child",
+            "status": {"name": "To Do"},
+            "issuetype": {"name": "Story"},
+            "project": {"key": "PROJ"},
+            "created": "2024-01-20T12:00:00.000+0000",
+            "updated": "2024-01-20T12:00:00.000+0000",
+            "parent": {"key": "EPIC-9"},
+        },
+    }
+    edit_payload = {
+        "key": "S-EDIT",
+        "fields": {
+            "summary": "Edited after start",
+            "status": {"name": "To Do"},
+            "issuetype": {"name": "Story"},
+            "project": {"key": "PROJ"},
+            "created": "2024-01-02T12:00:00.000+0000",
+            "updated": "2024-01-12T12:00:00.000+0000",
+            "parent": {"key": "EPIC-9", "fields": {"issuetype": {"name": "Epic"}}},
+            ac_field: "initial AC",
+        },
+    }
+
+    with use_org(org.id):
+        for payload in (early_payload, late_payload, edit_payload):
+            sync_canonical_issue_from_jira_payload(
+                db_session, org.id, payload, field_map=field_map
+            )
+        db_session.flush()
+
+        issues = {
+            row.external_key: row
+            for row in db_session.scalars(select(Issue)).all()
+        }
+        assert issues["C-1"].epic_key == "EPIC-9"
+        assert issues["C-LATE"].epic_key == "EPIC-9"
+        assert issues["S-EDIT"].epic_key == "EPIC-9"
+
+        for transition in (
+            _t("C-1", _at(10), "To Do", "In Progress", event_id="st-1"),
+            _t("S-EDIT", _at(8), "To Do", "In Progress", event_id="st-2"),
+        ):
+            upsert_canonical_transition(db_session, org.id, transition)
+
+        # Changelog-shaped history: post-start AC edit (same path as import #14/#19).
+        created = sync_canonical_field_changes_from_jira_history(
+            db_session,
+            org.id,
+            "S-EDIT",
+            {
+                "id": "ac1",
+                "created": "2024-01-12T12:00:00.000+0000",
+                "items": [
+                    {
+                        "field": "Acceptance Criteria",
+                        "fieldId": ac_field,
+                        "fromString": "initial AC",
+                        "toString": "revised AC",
+                    },
+                    {
+                        "field": "status",
+                        "fieldId": "status",
+                        "fromString": "To Do",
+                        "toString": "In Progress",
+                    },
+                ],
+            },
+            field_map=field_map,
+        )
+        assert created == 1
+        # Pre-start description edit must not become a spec signal after compute.
+        sync_canonical_field_changes_from_jira_history(
+            db_session,
+            org.id,
+            "S-EDIT",
+            {
+                "id": "desc-pre",
+                "created": "2024-01-03T12:00:00.000+0000",
+                "items": [
+                    {
+                        "field": "description",
+                        "fieldId": "description",
+                        "fromString": None,
+                        "toString": "draft",
+                    }
+                ],
+            },
+            field_map=field_map,
+        )
+        db_session.commit()
+
+        field_rows = list(db_session.scalars(select(IssueFieldChange)).all())
+        assert {(r.field, r.external_event_id) for r in field_rows} == {
+            ("acceptance_criteria", "ac1"),
+            ("description", "desc-pre"),
+        }
+
+        late_n, spec_n, agg_n = compute_and_store_scope_change_for_org(
+            db_session, org.id, classify=CLASSIFY
+        )
+        db_session.commit()
+        assert late_n == 1
+        assert spec_n == 1
+        assert agg_n >= 2
+
+        late_events = list(db_session.scalars(select(LateChildEvent)).all())
+        assert [e.external_key for e in late_events] == ["C-LATE"]
+        assert late_events[0].evidence_ref == "epic:EPIC-9/late-child:C-LATE"
+
+        spec_events = list(db_session.scalars(select(SpecChangeEvent)).all())
+        assert len(spec_events) == 1
+        assert spec_events[0].field == "acceptance_criteria"
+        assert spec_events[0].evidence_ref == (
+            "issue:S-EDIT/field:acceptance_criteria:ac1:0"
+        )

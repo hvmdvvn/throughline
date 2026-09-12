@@ -42,7 +42,7 @@ DEFAULT_PAGE_SIZE = 50
 # Fields needed for Phase 0 analytics scaffolding; comments deferred to #69.
 # Mapped custom-field ids are appended at runtime from per-org mappings (#12/#15).
 _SEARCH_FIELDS_BASE = (
-    "summary,status,issuetype,project,created,updated,description,"
+    "summary,status,issuetype,project,created,updated,description,parent,"
     "labels,priority,assignee,reporter"
 )
 
