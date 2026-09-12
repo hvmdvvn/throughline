@@ -33,8 +33,9 @@ Requires Python 3.12+. Create and activate a virtualenv first (`python -m venv .
 | Run individual tests | `pytest tests/test_app.py` (or any path/node id) |
 | Run API only (host) | `uvicorn throughline.api.app:app --reload` |
 | Run arq worker (host) | `arq throughline.workers.settings.WorkerSettings` |
-| Lint | TBD (ruff once CI lands) |
-| Format | TBD |
+| Lint | `ruff check .` |
+| Apply migrations (host, needs Postgres) | `alembic upgrade head` |
+| Migration drift check (host, needs Postgres) | `alembic check` |
 
 Copy `.env.example` to `.env` for local overrides (optional; Compose has safe defaults). Set `ENVIRONMENT=production` only with real `DATABASE_URL` / `REDIS_URL` — production refuses to boot if those are unset. Never commit secrets.
 

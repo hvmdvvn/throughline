@@ -27,6 +27,7 @@ htmlcov/
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
+.tmp/
 
 # Docker / local data
 *.sqlite3

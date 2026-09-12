@@ -1,0 +1,60 @@
+# Throughline CI — FastAPI + SQLAlchemy/Alembic + ruff + pytest (no Django/Celery).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      # Same family as Compose (`pgvector/pgvector:pg16`) so pgvector tests run.
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: throughline
+          POSTGRES_PASSWORD: throughline
+          POSTGRES_DB: throughline
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U throughline -d throughline"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      ENVIRONMENT: development
+      DATABASE_URL: postgresql://throughline:throughline@localhost:5432/throughline
+      REDIS_URL: redis://localhost:6379/0
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -e ".[dev]"
+
+      - name: Ruff
+        run: ruff check .
+
+      - name: Apply Alembic migrations
+        run: alembic upgrade head
+
+      - name: Alembic model/migration check
+        # Fails when SQLAlchemy models diverge from applied migrations
+        # (autogenerate would produce a non-empty revision). Not Django.
+        run: alembic check
+
+      - name: Pytest
+        run: pytest

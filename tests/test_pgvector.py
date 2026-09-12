@@ -8,9 +8,14 @@ import pytest
 from alembic import command
 from alembic.config import Config
 from sqlalchemy import delete, select, text
+from sqlalchemy.exc import SQLAlchemyError
 
 from throughline.db.models import DEV_PGVECTOR_PROOF_DIM, DevPgvectorProof
-from throughline.db.session import get_engine, get_session_factory, sqlalchemy_database_url
+from throughline.db.session import (
+    get_engine,
+    get_session_factory,
+    sqlalchemy_database_url,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
@@ -26,7 +31,7 @@ def _postgres_reachable() -> bool:
         with get_engine().connect() as conn:
             conn.execute(text("SELECT 1"))
         return True
-    except Exception:
+    except (OSError, SQLAlchemyError):
         return False
 
 

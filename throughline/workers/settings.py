@@ -1,5 +1,7 @@
 """Minimal arq worker settings. Real jobs land in later foundation issues."""
 
+from typing import ClassVar
+
 from arq.connections import RedisSettings
 
 from throughline.config import settings
@@ -13,5 +15,5 @@ async def ping(ctx: dict) -> str:
 class WorkerSettings:
     """Run with: ``arq throughline.workers.settings.WorkerSettings``."""
 
-    functions = [ping]
+    functions: ClassVar[list] = [ping]
     redis_settings = RedisSettings.from_dsn(settings.redis_url)
