@@ -74,6 +74,7 @@ def upsert_canonical_issue(db: Session, org_id: uuid.UUID, issue: CanonicalIssue
             description=issue.description,
             acceptance_criteria=issue.acceptance_criteria,
             story_points=issue.story_points,
+            original_estimate_seconds=issue.original_estimate_seconds,
             source_created_at=issue.created_at,
             source_updated_at=issue.updated_at,
         )
@@ -90,6 +91,7 @@ def upsert_canonical_issue(db: Session, org_id: uuid.UUID, issue: CanonicalIssue
     existing.description = issue.description
     existing.acceptance_criteria = issue.acceptance_criteria
     existing.story_points = issue.story_points
+    existing.original_estimate_seconds = issue.original_estimate_seconds
     existing.source_created_at = issue.created_at
     existing.source_updated_at = issue.updated_at
     return existing
@@ -250,6 +252,7 @@ def sync_canonical_issue_from_jira_row(
             epic_key=None,
             description=None,
             team_key=None,
+            original_estimate_seconds=None,
         )
     return upsert_canonical_issue(db, org_id, canonical)
 

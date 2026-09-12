@@ -53,6 +53,7 @@ def _issue_row_to_canonical(row: Issue) -> CanonicalIssue:
         epic_key=row.epic_key,
         description=row.description,
         team_key=row.team_key,
+        original_estimate_seconds=row.original_estimate_seconds,
     )
 
 

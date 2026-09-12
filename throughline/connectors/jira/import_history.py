@@ -43,7 +43,7 @@ DEFAULT_PAGE_SIZE = 50
 # Mapped custom-field ids are appended at runtime from per-org mappings (#12/#15).
 _SEARCH_FIELDS_BASE = (
     "summary,status,issuetype,project,created,updated,description,parent,"
-    "labels,priority,assignee,reporter"
+    "labels,priority,assignee,reporter,timeoriginalestimate"
 )
 
 

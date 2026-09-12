@@ -153,6 +153,16 @@ def field_value_as_float(value: Any) -> float | None:
     return None
 
 
+def field_value_as_int_seconds(value: Any) -> int | None:
+    """Coerce a Jira time-estimate field (seconds) to a positive int, or ``None``."""
+    parsed = field_value_as_float(value)
+    if parsed is None:
+        return None
+    if parsed <= 0:
+        return None
+    return int(parsed)
+
+
 def concept_field_map(
     mappings: Mapping[JiraFieldConcept, str | None] | Mapping[str, str | None],
 ) -> dict[JiraFieldConcept, str | None]:
@@ -196,6 +206,10 @@ def map_jira_issue_payload(
     sp_field = concepts[JiraFieldConcept.STORY_POINTS]
     acceptance = field_value_as_text(fields.get(ac_field)) if ac_field else None
     story_points = field_value_as_float(fields.get(sp_field)) if sp_field else None
+    # System field — present when requested on /search; missing → explicit None.
+    original_estimate_seconds = field_value_as_int_seconds(
+        fields.get("timeoriginalestimate")
+    )
 
     return CanonicalIssue(
         external_key=key.strip(),
@@ -211,6 +225,7 @@ def map_jira_issue_payload(
         description=field_value_as_text(fields.get("description")),
         # Team is not a standard Jira system field; leave unset until mapped.
         team_key=None,
+        original_estimate_seconds=original_estimate_seconds,
     )
 
 

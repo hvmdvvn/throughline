@@ -29,6 +29,8 @@ class CanonicalIssue:
     description: str | None = None
     # Optional team dimension key for project/team aggregates (never a person id).
     team_key: str | None = None
+    # Original time estimate in seconds (Jira timeoriginalestimate); never a person id.
+    original_estimate_seconds: int | None = None
 
 
 @dataclass(frozen=True, slots=True)

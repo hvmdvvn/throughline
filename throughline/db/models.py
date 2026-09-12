@@ -15,6 +15,9 @@ post-start description/AC edits as spec-instability proxies.
 Spec quality indicators (issue #20): ``SpecQualityIssueIndicator``,
 ``SpecQualityAggregate`` — underspecification proxies (not quality scores);
 comment-traffic blocked until comment import (#69).
+Estimation accuracy (issue #21): ``EstimationAccuracyIssueMetric``,
+``EstimationAccuracyAggregate`` — estimate vs cycle time with coverage;
+per-team only (never per-person).
 ``DevPgvectorProof`` is a disposable foundation table used only to prove
 pgvector round-trips (issue #3). It is not a product embeddings table.
 """
@@ -496,6 +499,8 @@ class Issue(TenantScopedMixin, Base):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     acceptance_criteria: Mapped[str | None] = mapped_column(Text, nullable=True)
     story_points: Mapped[float | None] = mapped_column(Float, nullable=True)
+    # Original time estimate in seconds (issue #21); system field, not a person id.
+    original_estimate_seconds: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     source_created_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         nullable=True,
@@ -863,6 +868,91 @@ class SpecQualityAggregate(TenantScopedMixin, Base):
         default=True,
     )
     # Issue keys counted in this aggregate for drill-down (evidence refs).
+    evidence_issue_keys: Mapped[list[Any]] = mapped_column(JSONB, nullable=False)
+
+
+class EstimationAccuracyIssueMetric(TenantScopedMixin, Base):
+    """Per-issue estimate vs cycle-time comparison (issue #21).
+
+    Coverage and accuracy only. Soft-delete only. No person / actor fields —
+    never store or expose per-person estimation accuracy.
+    """
+
+    __tablename__ = "estimation_accuracy_issue_metrics"
+    __table_args__ = (
+        UniqueConstraint(
+            "org_id",
+            "external_key",
+            name="uq_estimation_accuracy_issue_metrics_org_key",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+    external_key: Mapped[str] = mapped_column(String(64), nullable=False)
+    # Team dimension — empty when unknown; never a person id.
+    team_key: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    story_points: Mapped[float | None] = mapped_column(Float, nullable=True)
+    original_estimate_seconds: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    cycle_time_seconds: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    has_usable_estimate: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    # ``none`` | ``original_estimate`` | ``story_points``
+    estimate_kind: Mapped[str] = mapped_column(String(32), nullable=False, default="none")
+    # Resolved estimate duration used for the ratio (null when uncomparable).
+    estimated_seconds: Mapped[float | None] = mapped_column(Float, nullable=True)
+    # actual cycle_time / estimated_seconds (null when uncomparable).
+    accuracy_ratio: Mapped[float | None] = mapped_column(Float, nullable=True)
+    # ``over`` | ``under`` | ``accurate`` | ``uncomparable``
+    accuracy_bucket: Mapped[str] = mapped_column(String(32), nullable=False)
+    # Team median seconds/point used when estimate_kind is story_points.
+    seconds_per_point: Mapped[float | None] = mapped_column(Float, nullable=True)
+    observed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    # Drill-down: issue:{key}/estimation-accuracy
+    evidence_ref: Mapped[str] = mapped_column(String(255), nullable=False)
+
+
+class EstimationAccuracyAggregate(TenantScopedMixin, Base):
+    """Estimation accuracy rollups by team and calendar month (issue #21).
+
+    Coverage alongside over/under/accurate counts. Soft-delete only.
+    Dimension is ``team`` only — never per-person.
+    """
+
+    __tablename__ = "estimation_accuracy_aggregates"
+    __table_args__ = (
+        UniqueConstraint(
+            "org_id",
+            "period_start",
+            "period_grain",
+            "dimension",
+            "dimension_key",
+            name="uq_estimation_accuracy_aggregates_org_period_dim",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+    period_start: Mapped[date] = mapped_column(Date, nullable=False)
+    period_grain: Mapped[str] = mapped_column(String(16), nullable=False, default="month")
+    # ``team`` only — never a person scoreboard.
+    dimension: Mapped[str] = mapped_column(String(32), nullable=False)
+    dimension_key: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    issue_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    with_estimate_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    comparable_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    # with_estimate_count / issue_count (0.0 when issue_count is 0).
+    coverage: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    over_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    under_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    accurate_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    # Sum of comparable accuracy ratios for mean = sum / comparable_count.
+    accuracy_ratio_sum: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     evidence_issue_keys: Mapped[list[Any]] = mapped_column(JSONB, nullable=False)
 
 
