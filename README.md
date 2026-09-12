@@ -19,3 +19,33 @@ GitHub issues are the live units of work: https://github.com/hvmdvvn/throughline
 FastAPI (Python 3.12), arq + Redis, Postgres 16 + pgvector, SQLAlchemy + Alembic, Next.js, Docker.
 
 Backlog and GitHub issues are aligned to `_docs/PLAN.md` (decision 2026-09-12).
+
+## Setup
+
+Requires Python 3.12+.
+
+```bash
+python -m venv .venv
+```
+
+Activate the virtualenv, then install the package with dev dependencies:
+
+```bash
+# Windows (PowerShell)
+.\.venv\Scripts\Activate.ps1
+
+# macOS / Linux
+source .venv/bin/activate
+
+pip install -e ".[dev]"
+```
+
+## Tests
+
+```bash
+pytest
+```
+
+## Application package
+
+The FastAPI app lives under `throughline/api/`. Settings load from environment variables (with safe defaults) via `throughline.config`.

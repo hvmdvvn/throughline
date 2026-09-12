@@ -18,16 +18,14 @@ If an issue contradicts `_docs/PLAN.md`, stop and report the contradiction. Do n
 
 ## Commands
 
-No application code exists yet (repo is docs + backlog only). Commands will be established by foundation issues and recorded here when they exist.
+Requires Python 3.12+. Create and activate a virtualenv first (`python -m venv .venv`).
 
-Until then, expected shape from `_docs/PLAN.md` / backlog (not yet runnable):
-
-| Action | Command (TBD) |
+| Action | Command |
 |---|---|
-| Install dependencies | TBD after project skeleton |
+| Install dependencies | `pip install -e ".[dev]"` |
 | Run application | TBD (`docker compose up` once issue 2 lands) |
-| Run full test suite | TBD (pytest once issue 1 lands) |
-| Run individual tests | TBD |
+| Run full test suite | `pytest` |
+| Run individual tests | `pytest tests/test_app.py` (or any path/node id) |
 | Lint | TBD (ruff once CI lands) |
 | Format | TBD |
 | Build | TBD |
