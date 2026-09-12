@@ -27,6 +27,7 @@ Requires Python 3.12+. Create and activate a virtualenv first (`python -m venv .
 | Stop stack | `docker compose down` |
 | API health | `http://localhost:8000/health` |
 | Prove API → DB/Redis | `docker compose exec api python -m throughline.connectivity` |
+| Run migrations | `docker compose run --rm api alembic upgrade head` |
 | Run full test suite (container) | `docker compose run --rm api pytest` |
 | Run full test suite (host) | `pytest` |
 | Run individual tests | `pytest tests/test_app.py` (or any path/node id) |
@@ -36,6 +37,8 @@ Requires Python 3.12+. Create and activate a virtualenv first (`python -m venv .
 | Format | TBD |
 
 Copy `.env.example` to `.env` for local overrides (optional; Compose has safe defaults). Never commit secrets.
+
+After changing the Postgres image (e.g. to enable pgvector), recreate the `db` volume if an older Postgres data dir remains: `docker compose down -v` then `docker compose up --build`.
 
 Update this section whenever foundation work adds real commands.
 

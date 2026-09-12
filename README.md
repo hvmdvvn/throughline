@@ -22,7 +22,7 @@ Backlog and GitHub issues are aligned to `_docs/PLAN.md` (decision 2026-09-12).
 
 ## Docker Compose (recommended)
 
-Starts API (`api`), arq `worker`, Postgres 16 (`db`), and Redis (`redis`).
+Starts API (`api`), arq `worker`, Postgres 16 + pgvector (`db`), and Redis (`redis`).
 
 ```bash
 # Optional: local overrides (file is gitignored)
@@ -40,15 +40,26 @@ docker compose exec api python -m throughline.connectivity
 
 That command prints `ok` when both TCP checks succeed (same check used by the `api` service healthcheck).
 
+Apply database migrations (creates the `vector` extension and schema):
+
+```bash
+docker compose run --rm api alembic upgrade head
+```
+
 Stop with `Ctrl+C` or `docker compose down`.
+
+If you previously ran Compose with plain `postgres:16`, wipe the volume once so the pgvector image can initialize cleanly: `docker compose down -v`.
 
 Postgres and Redis are reachable on the Compose network (`db`, `redis`) and are not published to the host by default (avoids clashing with a local Postgres). Uncomment the `ports` entries in `docker-compose.yml` if you need host access.
 
 ### Tests inside the container
 
 ```bash
+docker compose run --rm api alembic upgrade head
 docker compose run --rm api pytest
 ```
+
+The pgvector round-trip test (`tests/test_pgvector.py`) applies migrations itself when Postgres is reachable; running `alembic upgrade head` first is still the documented happy path.
 
 ## Local setup (without Docker)
 
@@ -101,4 +112,4 @@ Documented in [`.env.example`](.env.example). Do not commit real secrets; `.env`
 
 ## Application package
 
-The FastAPI app lives under `throughline/api/`. Settings load from environment variables (with safe defaults) via `throughline.config`. The arq worker settings live under `throughline/workers/`.
+The FastAPI app lives under `throughline/api/`. Settings load from environment variables (with safe defaults) via `throughline.config`. The arq worker settings live under `throughline/workers/`. SQLAlchemy models and session helpers live under `throughline/db/`; schema changes are Alembic migrations under `alembic/versions/` (no Django).

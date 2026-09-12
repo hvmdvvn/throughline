@@ -13,6 +13,10 @@ dependencies = [
     "pydantic-settings>=2.0.0",
     "uvicorn[standard]>=0.32.0",
     "arq>=0.26.0",
+    "sqlalchemy>=2.0.0",
+    "alembic>=1.14.0",
+    "psycopg[binary]>=3.2.0",
+    "pgvector>=0.3.0",
 ]
 
 [project.optional-dependencies]

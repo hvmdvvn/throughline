@@ -1,6 +1,7 @@
 services:
   db:
-    image: postgres:16
+    # Official Postgres 16 image with pgvector preinstalled (CREATE EXTENSION vector).
+    image: pgvector/pgvector:pg16
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-throughline}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-throughline}

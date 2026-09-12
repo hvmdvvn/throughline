@@ -7,8 +7,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app
 
-COPY pyproject.toml README.md ./
+COPY pyproject.toml README.md alembic.ini ./
 COPY throughline ./throughline
+COPY alembic ./alembic
 COPY tests ./tests
 
 # Install package + deps into site-packages. PYTHONPATH=/app prefers the
