@@ -1,7 +1,7 @@
 """Authenticated admin list endpoints for Org, User, and Membership (issue #6).
 
-Not Django admin — FastAPI routes gated by ``require_admin`` (temporary API-key
-stub until issue #8).
+Not Django admin — FastAPI routes gated by Clerk JWT auth (``require_admin`` /
+``require_auth`` from issue #8; replaces the temporary ``ADMIN_API_KEY`` stub).
 
 ``Org`` / ``User`` are not tenant-scoped (no ``org_id`` filter). ``Membership`` is
 tenant-scoped; the platform-admin list uses an explicit

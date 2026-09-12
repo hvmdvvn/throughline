@@ -9,10 +9,11 @@ Modes (documented equivalent of base / development / production):
 
 from __future__ import annotations
 
+import uuid
 from enum import StrEnum
 from typing import Self
 
-from pydantic import Field, model_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Host-side local defaults (Compose overrides via service env with host ``db`` / ``redis``).
@@ -46,15 +47,32 @@ class Settings(BaseSettings):
     database_url: str = ""
     redis_url: str = ""
 
-    # Temporary admin list-API auth until hosted JWT (issue #8). Bearer token.
-    # Development default is intentional and documented; override via env in real deploys.
-    admin_api_key: str = "dev-admin-api-key"
-
-    # Optional stubs for upcoming foundation work (issues #8+). Not required to boot.
+    # Hosted auth: Clerk (issue #8). JWTs verified via JWKS; no custom password auth.
+    # CLERK_ISSUER is required for authenticated routes (e.g. https://xxx.clerk.accounts.dev).
+    clerk_issuer: str = ""
+    # Optional override; default is ``{CLERK_ISSUER}/.well-known/jwks.json``.
+    clerk_jwks_url: str = ""
+    # Optional audience check; when empty, ``aud`` is not verified (Clerk session tokens).
+    clerk_audience: str = ""
+    # Static JWKS JSON for tests / offline (skips HTTP). Never put production keys in git.
+    clerk_jwks_static_json: str = ""
+    # Single-dev-org bootstrap: attach first-login users as admin to this org (UUID).
+    # When unset in development, get-or-create org named ``clerk_bootstrap_org_name``.
+    clerk_bootstrap_org_id: uuid.UUID | None = None
+    clerk_bootstrap_org_name: str = "Dev Org"
+    # Backend API key (optional; not used for JWT verification).
     clerk_secret_key: str | None = Field(default=None)
-    workos_api_key: str | None = Field(default=None)
+
+    # Optional stubs for upcoming foundation work. Not required to boot.
     anthropic_api_key: str | None = Field(default=None)
     openai_api_key: str | None = Field(default=None)
+
+    @field_validator("clerk_bootstrap_org_id", mode="before")
+    @classmethod
+    def _empty_bootstrap_org_id(cls, value: object) -> object:
+        if value == "" or value is None:
+            return None
+        return value
 
     @model_validator(mode="after")
     def _apply_environment_rules(self) -> Self:

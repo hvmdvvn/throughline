@@ -50,7 +50,7 @@ class Org(TimestampMixin, SoftDeleteMixin, Base):
 class User(TimestampMixin, SoftDeleteMixin, Base):
     """In-app person identity.
 
-    ``auth_subject`` is the future hosted-auth provider subject (issue #8).
+    ``auth_subject`` is the hosted-auth provider subject (Clerk ``sub``, issue #8).
     Users are not tenant-scoped rows; org linkage is via ``Membership``.
     """
 

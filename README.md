@@ -122,8 +122,26 @@ Documented in [`.env.example`](.env.example). Do not commit real secrets; `.env`
 | `REDIS_URL` | **required in production** | Redis URL (Compose default uses host `redis`) |
 | `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | Compose | Postgres bootstrap |
 | `APP_NAME` / `DEBUG` | both | App display name / debug flag |
-| `CLERK_SECRET_KEY` / `WORKOS_API_KEY` | optional stubs | Auth provider (issue #8) |
+| `CLERK_ISSUER` | auth | Clerk issuer URL (required for JWT-protected routes) |
+| `CLERK_JWKS_URL` | auth | Optional JWKS URL override |
+| `CLERK_AUDIENCE` | auth | Optional JWT audience; empty skips `aud` check |
+| `CLERK_JWKS_STATIC_JSON` | auth / tests | Inline JWKS for offline/tests (no live Clerk) |
+| `CLERK_BOOTSTRAP_ORG_ID` | auth | Org UUID for first-login membership (single-dev bootstrap) |
+| `CLERK_BOOTSTRAP_ORG_NAME` | auth | Dev get-or-create org name when bootstrap id unset (default `Dev Org`) |
+| `CLERK_SECRET_KEY` | optional | Clerk Backend API key (not used for JWT verification) |
 | `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` | optional stubs | LLM providers (later) |
+
+### Authentication (Clerk)
+
+Throughline uses **Clerk** for hosted auth (not WorkOS; not custom passwords/sessions). The API verifies inbound Bearer JWTs against Clerk JWKS in FastAPI dependencies. On the first authenticated request, the JWT `sub` is mapped to a local `User` and a `Membership` is created via the **single-dev-org bootstrap** rule:
+
+1. If `CLERK_BOOTSTRAP_ORG_ID` is set, join that existing org as `admin`.
+2. Else in `development`, get-or-create an org named `CLERK_BOOTSTRAP_ORG_NAME` and join as `admin`.
+3. Else in `production` with no bootstrap id and no prior membership → 403 (invite-only stub).
+
+Repeat logins are idempotent on `users.auth_subject`. Current org for authenticated routes can be derived from membership (`GET /me`); send `X-Org-Id` when the user belongs to multiple orgs. Admin list routes from issue #6 require a valid Clerk JWT (the temporary `ADMIN_API_KEY` stub is removed).
+
+Tests mint RS256 tokens against `CLERK_JWKS_STATIC_JSON` so the suite runs without a live Clerk tenant.
 
 In **development**, unset `DATABASE_URL` / `REDIS_URL` fall back to localhost defaults suitable for host-side runs (Compose still injects service hostnames). In **production**, starting with those unset raises a validation error and the process exits before serving traffic.
 

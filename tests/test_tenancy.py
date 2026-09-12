@@ -1,18 +1,23 @@
-"""Tenancy models and authenticated admin list endpoints (issue #6)."""
+"""Tenancy models and authenticated admin list endpoints (issue #6 / #8)."""
 
 from __future__ import annotations
 
+import json
+import time
 from datetime import UTC, datetime
 from pathlib import Path
 
+import jwt
 import pytest
 from alembic import command
 from alembic.config import Config
+from cryptography.hazmat.primitives.asymmetric import rsa
 from fastapi.testclient import TestClient
 from sqlalchemy import delete, select, text
 from sqlalchemy.exc import SQLAlchemyError
 
 from throughline.api.app import app
+from throughline.api.auth import clear_jwks_cache
 from throughline.config import settings
 from throughline.db.models import Membership, MembershipRole, Org, User
 from throughline.db.session import (
@@ -22,6 +27,70 @@ from throughline.db.session import (
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+TEST_ISSUER = "https://throughline-test.clerk.accounts.dev"
+TEST_KID = "tenancy-test-key"
+SEEDED_SUBJECT = "clerk_user_abc"
+
+
+@pytest.fixture(scope="module")
+def rsa_keypair():
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    return private_key, private_key.public_key()
+
+
+@pytest.fixture(scope="module")
+def jwks_static_json(rsa_keypair) -> str:
+    _, public_key = rsa_keypair
+    public_numbers = public_key.public_numbers()
+
+    def _b64url_uint(value: int) -> str:
+        length = (value.bit_length() + 7) // 8
+        return jwt.utils.base64url_encode(value.to_bytes(length, "big")).decode("ascii")
+
+    return json.dumps(
+        {
+            "keys": [
+                {
+                    "kty": "RSA",
+                    "kid": TEST_KID,
+                    "use": "sig",
+                    "alg": "RS256",
+                    "n": _b64url_uint(public_numbers.n),
+                    "e": _b64url_uint(public_numbers.e),
+                }
+            ]
+        }
+    )
+
+
+@pytest.fixture(autouse=True)
+def configure_clerk(rsa_keypair, jwks_static_json, monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setattr(settings, "clerk_issuer", TEST_ISSUER)
+    monkeypatch.setattr(settings, "clerk_jwks_static_json", jwks_static_json)
+    monkeypatch.setattr(settings, "clerk_jwks_url", "")
+    monkeypatch.setattr(settings, "clerk_audience", "")
+    monkeypatch.setattr(settings, "clerk_bootstrap_org_id", None)
+    clear_jwks_cache()
+    yield
+    clear_jwks_cache()
+
+
+def _auth_headers(private_key, sub: str = SEEDED_SUBJECT) -> dict[str, str]:
+    now = int(time.time())
+    token = jwt.encode(
+        {
+            "sub": sub,
+            "iss": TEST_ISSUER,
+            "iat": now - 10,
+            "exp": now + 3600,
+            "email": "pm@acme.example",
+            "name": "Pat Manager",
+        },
+        private_key,
+        algorithm="RS256",
+        headers={"kid": TEST_KID},
+    )
+    return {"Authorization": f"Bearer {token}"}
 
 
 def _alembic_config() -> Config:
@@ -65,7 +134,7 @@ def seeded_tenancy(db_session):
     org = Org(name="Acme")
     soft_deleted_org = Org(name="Gone Co", deleted_at=datetime.now(UTC))
     user = User(
-        auth_subject="clerk_user_abc",
+        auth_subject=SEEDED_SUBJECT,
         email="pm@acme.example",
         display_name="Pat Manager",
     )
@@ -85,10 +154,6 @@ def seeded_tenancy(db_session):
 @pytest.fixture
 def admin_client() -> TestClient:
     return TestClient(app)
-
-
-def _auth_headers() -> dict[str, str]:
-    return {"Authorization": f"Bearer {settings.admin_api_key}"}
 
 
 def test_org_user_membership_relationships(seeded_tenancy, db_session) -> None:
@@ -120,8 +185,9 @@ def test_list_orgs_requires_auth(admin_client: TestClient, seeded_tenancy) -> No
     assert response.status_code == 401
 
 
-def test_list_orgs_happy_path(admin_client: TestClient, seeded_tenancy) -> None:
-    response = admin_client.get("/admin/orgs", headers=_auth_headers())
+def test_list_orgs_happy_path(admin_client: TestClient, seeded_tenancy, rsa_keypair) -> None:
+    private_key, _ = rsa_keypair
+    response = admin_client.get("/admin/orgs", headers=_auth_headers(private_key))
     assert response.status_code == 200
     body = response.json()
     assert len(body) == 1
@@ -132,18 +198,22 @@ def test_list_orgs_happy_path(admin_client: TestClient, seeded_tenancy) -> None:
     assert "deleted_at" not in body[0]
 
 
-def test_list_users_happy_path(admin_client: TestClient, seeded_tenancy) -> None:
-    response = admin_client.get("/admin/users", headers=_auth_headers())
+def test_list_users_happy_path(admin_client: TestClient, seeded_tenancy, rsa_keypair) -> None:
+    private_key, _ = rsa_keypair
+    response = admin_client.get("/admin/users", headers=_auth_headers(private_key))
     assert response.status_code == 200
     body = response.json()
     assert len(body) == 1
     assert body[0]["email"] == "pm@acme.example"
-    assert body[0]["auth_subject"] == "clerk_user_abc"
+    assert body[0]["auth_subject"] == SEEDED_SUBJECT
     assert body[0]["display_name"] == "Pat Manager"
 
 
-def test_list_memberships_happy_path(admin_client: TestClient, seeded_tenancy) -> None:
-    response = admin_client.get("/admin/memberships", headers=_auth_headers())
+def test_list_memberships_happy_path(
+    admin_client: TestClient, seeded_tenancy, rsa_keypair
+) -> None:
+    private_key, _ = rsa_keypair
+    response = admin_client.get("/admin/memberships", headers=_auth_headers(private_key))
     assert response.status_code == 200
     body = response.json()
     assert len(body) == 1

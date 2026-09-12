@@ -25,10 +25,13 @@ def require_current_org(
 ) -> uuid.UUID:
     """Require a current organization for the request.
 
-    Until hosted auth (issue #8), clients pass ``X-Org-Id``. The HTTP middleware
-    binds that header into the request-scoped contextvar (needed so sync route
-    bodies / DB work see the same org). This dependency rejects requests with no
-    org and returns the resolved id for injection into handlers.
+    Prefer ``throughline.api.auth.resolve_org_from_membership`` on authenticated
+    routes (org derived from membership, with optional ``X-Org-Id`` when the user
+    belongs to multiple orgs). This helper still accepts ``X-Org-Id`` / contextvar
+    for workers and unauthenticated tenancy tests.
+
+    The HTTP middleware binds ``X-Org-Id`` into the request-scoped contextvar so
+    sync route bodies / DB work see the same org.
     """
     if x_org_id is not None:
         return x_org_id

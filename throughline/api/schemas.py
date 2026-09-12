@@ -39,3 +39,15 @@ class MembershipListItem(BaseModel):
     role: MembershipRole
     created_at: datetime
     updated_at: datetime
+
+
+class MeResponse(BaseModel):
+    """Authenticated identity + org derived from membership (issue #8)."""
+
+    user_id: uuid.UUID
+    auth_subject: str | None
+    email: str | None
+    display_name: str | None
+    org_id: uuid.UUID
+    membership_id: uuid.UUID
+    role: MembershipRole

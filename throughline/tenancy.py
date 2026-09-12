@@ -13,8 +13,9 @@
 **Current org**
 
 - Stored in a ``contextvars.ContextVar`` for request-safety.
-- Set by FastAPI middleware from ``X-Org-Id`` (temporary until hosted auth / issue #8)
-  or by ``use_org`` / ``set_current_org_id`` in workers and tests.
+- Set by FastAPI middleware from ``X-Org-Id``, by ``resolve_org_from_membership``
+  (authenticated membership selection, issue #8), or by ``use_org`` /
+  ``set_current_org_id`` in workers and tests.
 
 **Bypass**
 
