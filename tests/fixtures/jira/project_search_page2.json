@@ -1,0 +1,10 @@
+{
+  "self": "https://api.atlassian.com/ex/jira/cloud-fixture/rest/api/3/project/search?startAt=2&maxResults=2",
+  "maxResults": 2,
+  "startAt": 2,
+  "total": 3,
+  "isLast": true,
+  "values": [
+    {"id": "10002", "key": "GAMMA", "name": "Gamma"}
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "expand": "names,schema",
+  "startAt": 2,
+  "maxResults": 2,
+  "total": 4,
+  "issues": [
+    {"id": "3", "key": "ALPHA-3"},
+    {"id": "4", "key": "ALPHA-4"}
+  ]
+}

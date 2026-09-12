@@ -1,0 +1,8 @@
+{
+  "id": "10000",
+  "key": "ALPHA-1",
+  "fields": {
+    "summary": "Recorded issue fixture",
+    "status": {"name": "To Do"}
+  }
+}
