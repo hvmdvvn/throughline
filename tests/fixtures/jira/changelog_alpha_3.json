@@ -1,0 +1,27 @@
+{
+  "self": "https://api.atlassian.com/ex/jira/cloud-import/rest/api/3/issue/ALPHA-3/changelog?startAt=0&maxResults=100",
+  "maxResults": 100,
+  "startAt": 0,
+  "total": 1,
+  "isLast": true,
+  "values": [
+    {
+      "id": "10301",
+      "author": {
+        "accountId": "acct-alice",
+        "displayName": "Alice Admin"
+      },
+      "created": "2024-01-05T11:00:00.000+0000",
+      "items": [
+        {
+          "field": "summary",
+          "fieldtype": "jira",
+          "from": null,
+          "fromString": "Third issue",
+          "to": null,
+          "toString": "Third issue (edited)"
+        }
+      ]
+    }
+  ]
+}

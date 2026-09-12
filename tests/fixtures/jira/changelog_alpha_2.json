@@ -1,0 +1,85 @@
+{
+  "self": "https://api.atlassian.com/ex/jira/cloud-import/rest/api/3/issue/ALPHA-2/changelog?startAt=0&maxResults=100",
+  "maxResults": 100,
+  "startAt": 0,
+  "total": 4,
+  "isLast": true,
+  "values": [
+    {
+      "id": "10201",
+      "author": {
+        "accountId": "acct-carol",
+        "displayName": "Carol PM"
+      },
+      "created": "2024-01-03T11:00:00.000+0000",
+      "items": [
+        {
+          "field": "status",
+          "fieldtype": "jira",
+          "fieldId": "status",
+          "from": "1",
+          "fromString": "Open",
+          "to": "3",
+          "toString": "In Progress"
+        }
+      ]
+    },
+    {
+      "id": "10202",
+      "author": {
+        "accountId": "acct-carol",
+        "displayName": "Carol PM"
+      },
+      "created": "2024-01-04T09:00:00.000+0000",
+      "items": [
+        {
+          "field": "status",
+          "fieldtype": "jira",
+          "fieldId": "status",
+          "from": "3",
+          "fromString": "In Progress",
+          "to": "5",
+          "toString": "Done"
+        }
+      ]
+    },
+    {
+      "id": "10203",
+      "author": {
+        "accountId": "acct-dave",
+        "displayName": "Dave Reviewer"
+      },
+      "created": "2024-01-05T14:00:00.000+0000",
+      "items": [
+        {
+          "field": "status",
+          "fieldtype": "jira",
+          "fieldId": "status",
+          "from": "5",
+          "fromString": "Done",
+          "to": "1",
+          "toString": "Open"
+        }
+      ]
+    },
+    {
+      "id": "10204",
+      "author": {
+        "accountId": "acct-dave",
+        "displayName": "Dave Reviewer"
+      },
+      "created": "2024-01-06T10:15:00.000+0000",
+      "items": [
+        {
+          "field": "status",
+          "fieldtype": "jira",
+          "fieldId": "status",
+          "from": "1",
+          "fromString": "Open",
+          "to": "3",
+          "toString": "In Progress"
+        }
+      ]
+    }
+  ]
+}

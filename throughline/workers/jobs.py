@@ -1,4 +1,4 @@
-"""arq job functions (issue #9 / #13).
+"""arq job functions (issue #9 / #13 / #14).
 
 Retries use exponential backoff via ``arq.Retry(defer=...)``. Callers that need
 a retry should raise::
@@ -9,8 +9,9 @@ a retry should raise::
 ``base * 2 ** (job_try - 1)`` seconds (see ``EXAMPLE_JOB_BACKOFF_BASE_SECONDS``
 and ``WorkerSettings.max_tries`` / per-job ``max_tries``).
 
-Issue history import (issue #13) persists its own ``sync_state`` cursor so a
-killed worker continues mid-backfill; arq retries are secondary to that cursor.
+Issue history import (issue #13) and changelog import (issue #14) persist their
+own ``sync_state`` cursors so a killed worker continues mid-backfill; arq
+retries are secondary to those cursors.
 """
 
 from __future__ import annotations
@@ -20,6 +21,7 @@ import logging
 import uuid
 from typing import Any
 
+from throughline.connectors.jira.import_changelog import run_changelog_import_for_org
 from throughline.connectors.jira.import_history import run_issue_history_import_for_org
 from throughline.db.session import get_session_factory
 from throughline.tenancy import use_org
@@ -33,6 +35,9 @@ EXAMPLE_JOB_BACKOFF_BASE_SECONDS = 1.0
 
 IMPORT_JOB_MAX_TRIES = 5
 IMPORT_JOB_KEEP_RESULT_SECONDS = 3600
+
+CHANGELOG_JOB_MAX_TRIES = 5
+CHANGELOG_JOB_KEEP_RESULT_SECONDS = 3600
 
 
 def exponential_backoff_seconds(
@@ -77,6 +82,33 @@ async def import_jira_issue_history(
                 "cursor": result.cursor,
                 "completed": result.completed,
                 "pages_processed": result.pages_processed,
+            }
+
+    return await asyncio.to_thread(_run)
+
+
+async def import_jira_changelog(
+    ctx: dict[str, Any],
+    org_id: str,
+) -> dict[str, Any]:
+    """Backfill status transitions for imported issues (issue #14)."""
+    _ = ctx
+    org_uuid = uuid.UUID(org_id)
+    session_factory = get_session_factory()
+
+    def _run() -> dict[str, Any]:
+        with session_factory() as db:
+            with use_org(org_uuid):
+                result = run_changelog_import_for_org(db, org_uuid)
+            return {
+                "ok": True,
+                "org_id": str(org_uuid),
+                "imported_count": result.imported_count,
+                "total_estimate": result.total_estimate,
+                "cursor": result.cursor,
+                "completed": result.completed,
+                "issues_processed": result.issues_processed,
+                "transitions_stored": result.transitions_stored,
             }
 
     return await asyncio.to_thread(_run)

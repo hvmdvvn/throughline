@@ -4,6 +4,7 @@ Identity / tenancy (issue #6): ``Org``, ``User``, ``Membership``.
 Jira OAuth connection (issue #10): ``JiraConnection`` — encrypted per-org tokens.
 Jira discovery (issue #12): ``Project``, issue types / statuses / fields, field mappings.
 History import (issue #13): ``JiraIssue``, ``SyncState``; import progress on ``JiraConnection``.
+Changelog import (issue #14): ``JiraStatusTransition``; sibling sync_state + connection progress.
 ``DevPgvectorProof`` is a disposable foundation table used only to prove
 pgvector round-trips (issue #3). It is not a product embeddings table.
 """
@@ -174,6 +175,15 @@ class JiraConnection(TenantScopedMixin, Base):
         DateTime(timezone=True),
         nullable=True,
     )
+    # Changelog status-transition pass (issue #14) — sibling cursor mirrored for ops.
+    changelog_status: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    changelog_imported_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    changelog_total_estimate: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    changelog_cursor: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    changelog_updated_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
 
 
 class JiraFieldConcept(enum.StrEnum):
@@ -313,6 +323,10 @@ class SyncState(TenantScopedMixin, Base):
     Issue history import uses ``connector=jira`` / ``sync_key=issue_history``.
     Cursor is the next ``startAt`` offset (stringified int) after the last
     successfully committed page so an interrupted worker resumes mid-run.
+
+    Changelog import uses ``sync_key=changelog``; cursor is the last successfully
+    processed ``issue_key`` (ordered ascending) so a mid-run failure resumes
+    without re-fetching already completed issues.
     """
 
     __tablename__ = "sync_states"
@@ -360,7 +374,8 @@ class JiraIssue(TenantScopedMixin, Base):
     """Imported Jira issue snapshot for Phase 0 history (plan §3 / issue #13).
 
     Upserted on ``(org_id, issue_key)``. ``node_id`` links to requirement nodes
-    later; transitions/changelogs land in issue #14. Soft-delete only.
+    later. Soft-delete only. ``changelog_imported_at`` marks a finished
+    changelog pass for the issue (issue #14).
     """
 
     __tablename__ = "jira_issues"
@@ -392,8 +407,48 @@ class JiraIssue(TenantScopedMixin, Base):
         DateTime(timezone=True),
         nullable=True,
     )
+    # Set when changelog status transitions for this issue are fully stored (#14).
+    changelog_imported_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
     # Optional link to a requirement node (Phase 1); unused in Phase 0 import.
     node_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+
+
+class JiraStatusTransition(TenantScopedMixin, Base):
+    """Append-oriented status transition from a Jira changelog history (issue #14).
+
+    Deduped on ``(org_id, issue_key, history_id, item_index)`` so re-runs and
+    mid-issue retries do not duplicate rows used later for cycle time / reopen.
+    """
+
+    __tablename__ = "jira_status_transitions"
+    __table_args__ = (
+        UniqueConstraint(
+            "org_id",
+            "issue_key",
+            "history_id",
+            "item_index",
+            name="uq_jira_status_transitions_org_issue_history_item",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+    issue_key: Mapped[str] = mapped_column(String(64), nullable=False)
+    history_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    item_index: Mapped[int] = mapped_column(Integer, nullable=False)
+    transitioned_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    actor_account_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    actor_display_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    from_status_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    from_status_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    to_status_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    to_status_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
 
 class DevPgvectorProof(Base):

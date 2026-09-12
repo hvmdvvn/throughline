@@ -1,0 +1,28 @@
+{
+  "self": "https://api.atlassian.com/ex/jira/cloud-import/rest/api/3/issue/ALPHA-4/changelog?startAt=1&maxResults=50",
+  "maxResults": 50,
+  "startAt": 1,
+  "total": 2,
+  "isLast": true,
+  "values": [
+    {
+      "id": "10402",
+      "author": {
+        "accountId": "acct-eve",
+        "displayName": "Eve Eng"
+      },
+      "created": "2024-01-08T16:45:00.000+0000",
+      "items": [
+        {
+          "field": "status",
+          "fieldtype": "jira",
+          "fieldId": "status",
+          "from": "3",
+          "fromString": "In Progress",
+          "to": "5",
+          "toString": "Done"
+        }
+      ]
+    }
+  ]
+}

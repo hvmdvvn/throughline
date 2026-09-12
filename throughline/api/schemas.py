@@ -155,3 +155,22 @@ class JiraImportEnqueueResponse(BaseModel):
 
     job_id: str
     org_id: uuid.UUID
+
+
+class JiraChangelogProgressResponse(BaseModel):
+    """Changelog status-transition import progress (issue #14)."""
+
+    status: str
+    imported_count: int
+    total_estimate: int | None = None
+    cursor: str | None = None
+    updated_at: datetime | None = None
+    detail: str | None = None
+    sync_status: str | None = None
+
+
+class JiraChangelogEnqueueResponse(BaseModel):
+    """Enqueue ack for the resumable changelog import job."""
+
+    job_id: str
+    org_id: uuid.UUID

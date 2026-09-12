@@ -35,6 +35,7 @@ Requires Python 3.12+. Create and activate a virtualenv first (`python -m venv .
 | Run arq worker (host) | `arq throughline.workers.settings.WorkerSettings` |
 | Job status (admin, auth) | `GET /admin/jobs/{job_id}` |
 | Jira issue history import (admin, auth) | `POST /admin/jira/import` (enqueue arq job); `GET /admin/jira/import` (progress) |
+| Jira changelog import (admin, auth) | `POST /admin/jira/changelog` (enqueue arq job); `GET /admin/jira/changelog` (progress) |
 | Lint | `ruff check .` |
 | Apply migrations (host, needs Postgres) | `alembic upgrade head` |
 | Migration drift check (host, needs Postgres) | `alembic check` |

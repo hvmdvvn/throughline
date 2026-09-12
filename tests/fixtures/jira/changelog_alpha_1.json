@@ -1,0 +1,55 @@
+{
+  "self": "https://api.atlassian.com/ex/jira/cloud-import/rest/api/3/issue/ALPHA-1/changelog?startAt=0&maxResults=100",
+  "maxResults": 100,
+  "startAt": 0,
+  "total": 2,
+  "isLast": true,
+  "values": [
+    {
+      "id": "10101",
+      "author": {
+        "accountId": "acct-alice",
+        "displayName": "Alice Admin"
+      },
+      "created": "2024-01-01T12:00:00.000+0000",
+      "items": [
+        {
+          "field": "status",
+          "fieldtype": "jira",
+          "fieldId": "status",
+          "from": "1",
+          "fromString": "Open",
+          "to": "3",
+          "toString": "In Progress"
+        },
+        {
+          "field": "assignee",
+          "fieldtype": "jira",
+          "from": null,
+          "fromString": null,
+          "to": "acct-alice",
+          "toString": "Alice Admin"
+        }
+      ]
+    },
+    {
+      "id": "10102",
+      "author": {
+        "accountId": "acct-bob",
+        "displayName": "Bob Builder"
+      },
+      "created": "2024-01-02T15:30:00.000+0000",
+      "items": [
+        {
+          "field": "status",
+          "fieldtype": "jira",
+          "fieldId": "status",
+          "from": "3",
+          "fromString": "In Progress",
+          "to": "5",
+          "toString": "Done"
+        }
+      ]
+    }
+  ]
+}

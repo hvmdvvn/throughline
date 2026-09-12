@@ -9,11 +9,14 @@ from arq.worker import func
 
 from throughline.config import settings
 from throughline.workers.jobs import (
+    CHANGELOG_JOB_KEEP_RESULT_SECONDS,
+    CHANGELOG_JOB_MAX_TRIES,
     EXAMPLE_JOB_KEEP_RESULT_SECONDS,
     EXAMPLE_JOB_MAX_TRIES,
     IMPORT_JOB_KEEP_RESULT_SECONDS,
     IMPORT_JOB_MAX_TRIES,
     example_sleep_log,
+    import_jira_changelog,
     import_jira_issue_history,
 )
 
@@ -41,6 +44,15 @@ import_jira_issue_history_job = func(
     max_tries=IMPORT_JOB_MAX_TRIES,
 )
 
+# Resumable changelog status-transition import (issue #14). Sibling sync_state
+# cursor is the last completed issue_key.
+import_jira_changelog_job = func(
+    import_jira_changelog,
+    name="import_jira_changelog",
+    keep_result=CHANGELOG_JOB_KEEP_RESULT_SECONDS,
+    max_tries=CHANGELOG_JOB_MAX_TRIES,
+)
+
 
 class WorkerSettings:
     """Run with: ``arq throughline.workers.settings.WorkerSettings``.
@@ -64,6 +76,7 @@ class WorkerSettings:
         ping,
         example_sleep_log_job,
         import_jira_issue_history_job,
+        import_jira_changelog_job,
     ]
     redis_settings = RedisSettings.from_dsn(settings.redis_url)
 
