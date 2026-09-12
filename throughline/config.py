@@ -63,6 +63,22 @@ class Settings(BaseSettings):
     # Backend API key (optional; not used for JWT verification).
     clerk_secret_key: str | None = Field(default=None)
 
+    # Atlassian OAuth 2.0 (3LO) for Jira Cloud (issue #10).
+    # Register an app at https://developer.atlassian.com/console/myapps/
+    # Callback URL must match ATLASSIAN_REDIRECT_URI exactly, e.g.
+    #   http://localhost:8000/connectors/jira/oauth/callback
+    atlassian_client_id: str = ""
+    atlassian_client_secret: str = ""
+    atlassian_redirect_uri: str = ""
+    # Space-delimited scopes; offline_access is always ensured by the authorize helper.
+    atlassian_oauth_scopes: str = "read:jira-work read:jira-user offline_access"
+
+    # Fernet key for encrypting per-org connector credentials (url-safe base64).
+    # Generate:
+    #   python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+    # Development may omit and use a documented insecure default; production must set it.
+    credentials_encryption_key: str = ""
+
     # Optional stubs for upcoming foundation work. Not required to boot.
     anthropic_api_key: str | None = Field(default=None)
     openai_api_key: str | None = Field(default=None)
@@ -82,6 +98,7 @@ class Settings(BaseSettings):
                 for name, value in (
                     ("DATABASE_URL", self.database_url),
                     ("REDIS_URL", self.redis_url),
+                    ("CREDENTIALS_ENCRYPTION_KEY", self.credentials_encryption_key),
                 )
                 if not value.strip()
             ]

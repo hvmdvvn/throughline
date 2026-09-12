@@ -1,6 +1,7 @@
 """ORM models.
 
 Identity / tenancy (issue #6): ``Org``, ``User``, ``Membership``.
+Jira OAuth connection (issue #10): ``JiraConnection`` — encrypted per-org tokens.
 ``DevPgvectorProof`` is a disposable foundation table used only to prove
 pgvector round-trips (issue #3). It is not a product embeddings table.
 """
@@ -9,9 +10,19 @@ from __future__ import annotations
 
 import enum
 import uuid
+from datetime import datetime
 
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import Enum, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import (
+    DateTime,
+    Enum,
+    ForeignKey,
+    Integer,
+    LargeBinary,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -104,6 +115,53 @@ class Membership(TenantScopedMixin, Base):
 
     org: Mapped[Org] = relationship(back_populates="memberships")
     user: Mapped[User] = relationship(back_populates="memberships")
+
+
+class JiraConnectionStatus(enum.StrEnum):
+    """Lifecycle state for an org's Jira Cloud OAuth connection."""
+
+    CONNECTED = "connected"
+    DISCONNECTED = "disconnected"
+    ERROR = "error"
+
+
+class JiraConnection(TenantScopedMixin, Base):
+    """Per-org Atlassian OAuth credentials (encrypted) for Jira Cloud.
+
+    One row per org (unique ``org_id``). Soft-delete + ``status`` cover disconnect;
+    failed refresh sets ``status=error`` with an ops-safe ``status_detail``.
+    """
+
+    __tablename__ = "jira_connections"
+    __table_args__ = (UniqueConstraint("org_id", name="uq_jira_connections_org"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+    cloud_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    site_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    site_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    # Fernet ciphertext — never store or log plaintext tokens.
+    encrypted_access_token: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
+    encrypted_refresh_token: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
+    access_token_expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    scopes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    status: Mapped[JiraConnectionStatus] = mapped_column(
+        Enum(
+            JiraConnectionStatus,
+            name="jira_connection_status",
+            values_callable=lambda enum_cls: [member.value for member in enum_cls],
+            native_enum=True,
+        ),
+        nullable=False,
+        default=JiraConnectionStatus.DISCONNECTED,
+    )
+    status_detail: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
 
 class DevPgvectorProof(Base):

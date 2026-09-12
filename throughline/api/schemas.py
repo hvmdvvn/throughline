@@ -66,3 +66,23 @@ class JobStatusResponse(BaseModel):
     start_time: datetime | None = None
     finish_time: datetime | None = None
     score: int | None = None
+
+
+class JiraConnectionStatusResponse(BaseModel):
+    """Ops-safe Jira OAuth connection status for the current org (issue #10)."""
+
+    status: str
+    connected: bool
+    cloud_id: str | None = None
+    site_url: str | None = None
+    site_name: str | None = None
+    scopes: str | None = None
+    access_token_expires_at: datetime | None = None
+    detail: str | None = None
+    updated_at: datetime | None = None
+
+
+class JiraOAuthAuthorizeResponse(BaseModel):
+    """URL to redirect the admin browser to Atlassian consent."""
+
+    authorize_url: str
