@@ -38,3 +38,19 @@ class CanonicalTransition:
     # Opaque connector event identity for idempotent upserts — not a field name.
     external_event_id: str
     event_index: int
+
+
+@dataclass(frozen=True, slots=True)
+class CanonicalFieldChange:
+    """Normalized description/AC (or similar) field edit from changelog history.
+
+    ``field`` uses connector-agnostic names (e.g. ``description``,
+    ``acceptance_criteria``) — never Jira customfield ids. Event coordinates
+    mirror ``CanonicalTransition`` for stable evidence refs (issue #19).
+    """
+
+    external_key: str
+    changed_at: datetime
+    field: str
+    external_event_id: str
+    event_index: int

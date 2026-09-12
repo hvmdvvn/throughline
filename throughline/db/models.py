@@ -9,6 +9,9 @@ Canonical normalization (issue #15): ``Issue``, ``IssueTransition`` — no Jira 
 Cycle time outcomes (issue #17): ``Outcome`` — stored time-in-status / cycle time.
 Reopen metrics (issue #18): ``ReopenEvent``, ``ReopenAggregate`` — done→active
 detections with evidence refs; frequency aggregates by epic/project/month.
+Scope change metrics (issue #19): ``IssueFieldChange``, ``LateChildEvent``,
+``SpecChangeEvent``, ``ScopeChangeAggregate`` — late epic children and
+post-start description/AC edits as spec-instability proxies.
 ``DevPgvectorProof`` is a disposable foundation table used only to prove
 pgvector round-trips (issue #3). It is not a product embeddings table.
 """
@@ -637,6 +640,136 @@ class ReopenAggregate(TenantScopedMixin, Base):
     dimension: Mapped[str] = mapped_column(String(32), nullable=False)
     dimension_key: Mapped[str] = mapped_column(String(64), nullable=False, default="")
     reopen_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
+
+class IssueFieldChange(TenantScopedMixin, Base):
+    """Canonical description/AC field edit for analytics (issue #19).
+
+    Populated from connector changelog items via field mapping; analytics
+    never reads Jira customfield ids. Soft-delete only.
+    """
+
+    __tablename__ = "issue_field_changes"
+    __table_args__ = (
+        UniqueConstraint(
+            "org_id",
+            "external_key",
+            "external_event_id",
+            "event_index",
+            name="uq_issue_field_changes_org_key_event_item",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+    external_key: Mapped[str] = mapped_column(String(64), nullable=False)
+    changed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    # Connector-agnostic: ``description`` or ``acceptance_criteria``.
+    field: Mapped[str] = mapped_column(String(64), nullable=False)
+    external_event_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    event_index: Mapped[int] = mapped_column(Integer, nullable=False)
+
+
+class LateChildEvent(TenantScopedMixin, Base):
+    """Child issue created after the epic's first child entered in-progress (#19).
+
+    Evidence is the child issue key (creation is the change event). Soft-delete
+    only. Proxy metric — no good/bad labels.
+    """
+
+    __tablename__ = "late_child_events"
+    __table_args__ = (
+        UniqueConstraint(
+            "org_id",
+            "epic_key",
+            "external_key",
+            name="uq_late_child_events_org_epic_child",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+    epic_key: Mapped[str] = mapped_column(String(64), nullable=False)
+    external_key: Mapped[str] = mapped_column(String(64), nullable=False)
+    project_key: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    child_created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    epic_started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    # Seconds from epic start to child creation (timing signal).
+    delay_seconds: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    # Stable drill-down: epic:{epic}/late-child:{child}
+    evidence_ref: Mapped[str] = mapped_column(String(255), nullable=False)
+
+
+class SpecChangeEvent(TenantScopedMixin, Base):
+    """Description or AC edit after the issue first entered in-progress (#19).
+
+    Evidence coordinates match ``issue_field_changes``. Soft-delete only.
+    """
+
+    __tablename__ = "spec_change_events"
+    __table_args__ = (
+        UniqueConstraint(
+            "org_id",
+            "external_key",
+            "evidence_external_event_id",
+            "evidence_event_index",
+            name="uq_spec_change_events_org_key_evidence",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+    external_key: Mapped[str] = mapped_column(String(64), nullable=False)
+    project_key: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    epic_key: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    field: Mapped[str] = mapped_column(String(64), nullable=False)
+    changed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    work_began_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    evidence_external_event_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    evidence_event_index: Mapped[int] = mapped_column(Integer, nullable=False)
+    # Stable drill-down: issue:{key}/field:{field}:{event_id}:{index}
+    evidence_ref: Mapped[str] = mapped_column(String(255), nullable=False)
+
+
+class ScopeChangeAggregate(TenantScopedMixin, Base):
+    """Late-child and spec-change counts by epic/project and month (issue #19).
+
+    Counts only — no value judgments. Soft-delete only.
+    """
+
+    __tablename__ = "scope_change_aggregates"
+    __table_args__ = (
+        UniqueConstraint(
+            "org_id",
+            "period_start",
+            "period_grain",
+            "dimension",
+            "dimension_key",
+            name="uq_scope_change_aggregates_org_period_dim",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+    period_start: Mapped[date] = mapped_column(Date, nullable=False)
+    period_grain: Mapped[str] = mapped_column(String(16), nullable=False, default="month")
+    # ``epic`` or ``project``.
+    dimension: Mapped[str] = mapped_column(String(32), nullable=False)
+    dimension_key: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    late_child_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    spec_change_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
 
 class DevPgvectorProof(Base):
