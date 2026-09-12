@@ -1,0 +1,17 @@
+[
+  {
+    "id": "10",
+    "name": "Open",
+    "statusCategory": {"id": 2, "key": "new", "name": "To Do"}
+  },
+  {
+    "id": "20",
+    "name": "Working",
+    "statusCategory": {"id": 4, "key": "indeterminate", "name": "In Progress"}
+  },
+  {
+    "id": "30",
+    "name": "Closed",
+    "statusCategory": {"id": 3, "key": "done", "name": "Done"}
+  }
+]

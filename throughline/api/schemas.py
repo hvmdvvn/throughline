@@ -86,3 +86,53 @@ class JiraOAuthAuthorizeResponse(BaseModel):
     """URL to redirect the admin browser to Atlassian consent."""
 
     authorize_url: str
+
+
+class JiraProjectListItem(BaseModel):
+    """Discovered Jira project for the current org (issue #12)."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    org_id: uuid.UUID
+    external_id: str
+    key: str
+    name: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class JiraFieldMappingItem(BaseModel):
+    """Per-org concept → Jira field id mapping (issue #12)."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    org_id: uuid.UUID
+    concept: str
+    jira_field_id: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class JiraFieldMappingUpdate(BaseModel):
+    """Manual mapping upsert body."""
+
+    concept: str
+    jira_field_id: str
+
+
+class JiraFieldMappingsUpdateRequest(BaseModel):
+    """Batch manual field mapping updates."""
+
+    mappings: list[JiraFieldMappingUpdate]
+
+
+class JiraDiscoveryResultResponse(BaseModel):
+    """Summary counts from a discovery run."""
+
+    projects: int
+    issue_types: int
+    statuses: int
+    fields: int
+    mappings_seeded: int

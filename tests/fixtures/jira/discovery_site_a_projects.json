@@ -1,0 +1,11 @@
+{
+  "self": "https://api.atlassian.com/ex/jira/cloud-a/rest/api/3/project/search?startAt=0&maxResults=50",
+  "maxResults": 50,
+  "startAt": 0,
+  "total": 2,
+  "isLast": true,
+  "values": [
+    {"id": "10000", "key": "ALPHA", "name": "Alpha Board"},
+    {"id": "10001", "key": "BETA", "name": "Beta Board"}
+  ]
+}

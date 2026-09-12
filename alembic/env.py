@@ -10,8 +10,14 @@ from sqlalchemy import engine_from_config, pool
 from throughline.db.base import Base
 from throughline.db.models import (  # noqa: F401 — register metadata
     DevPgvectorProof,
+    JiraConnection,
+    JiraFieldDefinition,
+    JiraFieldMapping,
+    JiraIssueType,
+    JiraStatus,
     Membership,
     Org,
+    Project,
     User,
 )
 from throughline.db.session import sqlalchemy_database_url

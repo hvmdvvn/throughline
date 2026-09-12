@@ -1,0 +1,38 @@
+[
+  {
+    "id": "summary",
+    "name": "Summary",
+    "custom": false,
+    "schema": {"type": "string", "system": "summary"}
+  },
+  {
+    "id": "customfield_20001",
+    "name": "AC",
+    "custom": true,
+    "schema": {
+      "type": "string",
+      "custom": "com.atlassian.jira.plugin.system.customfieldtypes:textarea",
+      "customId": 20001
+    }
+  },
+  {
+    "id": "customfield_20002",
+    "name": "Story Point Estimate",
+    "custom": true,
+    "schema": {
+      "type": "number",
+      "custom": "com.atlassian.jira.plugin.system.customfieldtypes:float",
+      "customId": 20002
+    }
+  },
+  {
+    "id": "customfield_20999",
+    "name": "Unrelated Custom",
+    "custom": true,
+    "schema": {
+      "type": "string",
+      "custom": "com.atlassian.jira.plugin.system.customfieldtypes:textfield",
+      "customId": 20999
+    }
+  }
+]

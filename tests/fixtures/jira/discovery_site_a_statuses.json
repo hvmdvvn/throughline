@@ -1,0 +1,20 @@
+[
+  {
+    "self": "https://api.atlassian.com/ex/jira/cloud-a/rest/api/3/status/1",
+    "id": "1",
+    "name": "To Do",
+    "statusCategory": {"id": 2, "key": "new", "name": "To Do"}
+  },
+  {
+    "self": "https://api.atlassian.com/ex/jira/cloud-a/rest/api/3/status/3",
+    "id": "3",
+    "name": "In Progress",
+    "statusCategory": {"id": 4, "key": "indeterminate", "name": "In Progress"}
+  },
+  {
+    "self": "https://api.atlassian.com/ex/jira/cloud-a/rest/api/3/status/10001",
+    "id": "10001",
+    "name": "Done",
+    "statusCategory": {"id": 3, "key": "done", "name": "Done"}
+  }
+]

@@ -1,0 +1,14 @@
+[
+  {
+    "id": "20001",
+    "description": "Feature request",
+    "name": "Feature",
+    "hierarchyLevel": 0
+  },
+  {
+    "id": "20000",
+    "description": "Bug",
+    "name": "Bug",
+    "hierarchyLevel": 0
+  }
+]

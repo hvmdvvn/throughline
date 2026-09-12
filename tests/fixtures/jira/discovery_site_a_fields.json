@@ -1,0 +1,38 @@
+[
+  {
+    "id": "summary",
+    "name": "Summary",
+    "custom": false,
+    "schema": {"type": "string", "system": "summary"}
+  },
+  {
+    "id": "customfield_10010",
+    "name": "Acceptance Criteria",
+    "custom": true,
+    "schema": {
+      "type": "string",
+      "custom": "com.atlassian.jira.plugin.system.customfieldtypes:textarea",
+      "customId": 10010
+    }
+  },
+  {
+    "id": "customfield_10016",
+    "name": "Story Points",
+    "custom": true,
+    "schema": {
+      "type": "number",
+      "custom": "com.atlassian.jira.plugin.system.customfieldtypes:float",
+      "customId": 10016
+    }
+  },
+  {
+    "id": "customfield_10020",
+    "name": "Sprint",
+    "custom": true,
+    "schema": {
+      "type": "array",
+      "custom": "com.pyxis.greenhopper.jira:gh-sprint",
+      "customId": 10020
+    }
+  }
+]

@@ -6,7 +6,7 @@ import uuid
 
 from fastapi import FastAPI, Request, Response
 
-from throughline.api.routes import admin, auth_routes, jira_oauth
+from throughline.api.routes import admin, auth_routes, jira_discovery, jira_oauth
 from throughline.config import settings
 from throughline.tenancy import reset_current_org_id, set_current_org_id
 
@@ -15,6 +15,7 @@ app.include_router(admin.router)
 app.include_router(auth_routes.router)
 app.include_router(jira_oauth.admin_router)
 app.include_router(jira_oauth.router)
+app.include_router(jira_discovery.admin_router)
 
 
 @app.middleware("http")

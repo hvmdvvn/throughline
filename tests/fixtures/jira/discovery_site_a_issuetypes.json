@@ -1,0 +1,16 @@
+[
+  {
+    "self": "https://api.atlassian.com/ex/jira/cloud-a/rest/api/3/issuetype/10001",
+    "id": "10001",
+    "description": "A user story",
+    "name": "Story",
+    "hierarchyLevel": 0
+  },
+  {
+    "self": "https://api.atlassian.com/ex/jira/cloud-a/rest/api/3/issuetype/10000",
+    "id": "10000",
+    "description": "A big user story that needs to be broken down",
+    "name": "Epic",
+    "hierarchyLevel": 1
+  }
+]
