@@ -1,1 +1,1 @@
-"""arq worker package (task definitions)."""
+"""arq worker package (task definitions, issue #9)."""

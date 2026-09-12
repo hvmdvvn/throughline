@@ -33,6 +33,7 @@ Requires Python 3.12+. Create and activate a virtualenv first (`python -m venv .
 | Run individual tests | `pytest tests/test_app.py` (or any path/node id) |
 | Run API only (host) | `uvicorn throughline.api.app:app --reload` |
 | Run arq worker (host) | `arq throughline.workers.settings.WorkerSettings` |
+| Job status (admin, auth) | `GET /admin/jobs/{job_id}` |
 | Lint | `ruff check .` |
 | Apply migrations (host, needs Postgres) | `alembic upgrade head` |
 | Migration drift check (host, needs Postgres) | `alembic check` |

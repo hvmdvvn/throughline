@@ -51,3 +51,18 @@ class MeResponse(BaseModel):
     org_id: uuid.UUID
     membership_id: uuid.UUID
     role: MembershipRole
+
+
+class JobStatusResponse(BaseModel):
+    """arq job status / result snapshot (issue #9). Results live in Redis."""
+
+    job_id: str
+    status: str
+    function: str | None = None
+    success: bool | None = None
+    result: object | None = None
+    job_try: int | None = None
+    enqueue_time: datetime | None = None
+    start_time: datetime | None = None
+    finish_time: datetime | None = None
+    score: int | None = None

@@ -22,5 +22,10 @@ def test_host_port_from_redis_url() -> None:
 
 
 def test_worker_settings_wired() -> None:
+    from throughline.workers.settings import example_sleep_log_job
+
     assert ping in WorkerSettings.functions
+    assert example_sleep_log_job in WorkerSettings.functions
     assert isinstance(WorkerSettings.redis_settings, RedisSettings)
+    assert WorkerSettings.retry_jobs is True
+    assert WorkerSettings.max_tries >= 1

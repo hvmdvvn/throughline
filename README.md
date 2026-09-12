@@ -93,6 +93,13 @@ Run the arq worker (requires Redis):
 arq throughline.workers.settings.WorkerSettings
 ```
 
+### Background jobs (arq)
+
+Workers use the same `REDIS_URL` as Compose. The example job `example_sleep_log` sleeps briefly and logs; results stay in Redis for `keep_result` seconds (arq result backend).
+
+**Retries / exponential backoff:** `WorkerSettings.retry_jobs=True` and `max_tries` (default 5). Jobs that need a retry raise `Retry(defer=exponential_backoff_seconds(ctx["job_try"]))` — see `throughline/workers/jobs.py`. There is no Celery.
+
+**Status API:** `GET /admin/jobs/{job_id}` (Clerk JWT required; 401 without auth) returns status / result for a job id.
 ### Tests locally
 
 ```bash
