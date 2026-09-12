@@ -196,7 +196,7 @@ def store_reopen_detections(
 
 
 def rebuild_reopen_aggregates(db: Session) -> int:
-    """Rebuild month×epic and month×project aggregates from active events.
+    """Rebuild month x epic and month x project aggregates from active events.
 
     Idempotent: upserts counts and soft-deletes aggregate rows that fall to zero.
     Returns the number of active aggregate rows after rebuild.

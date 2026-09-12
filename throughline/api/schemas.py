@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import date, datetime
+from typing import Any
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from throughline.db.models import MembershipRole
 
@@ -174,3 +175,59 @@ class JiraChangelogEnqueueResponse(BaseModel):
 
     job_id: str
     org_id: uuid.UUID
+
+
+class DiagnosticReportListItem(BaseModel):
+    """Summary row for listing diagnostic reports (issue #23)."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    org_id: uuid.UUID
+    range_start: date
+    range_end: date
+    version: int
+    status: str
+    generated_at: datetime | None = None
+    error_message: str | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class DiagnosticMetricEntry(BaseModel):
+    """One metric value plus evidence refs as stored on the report."""
+
+    value: float | int | None = None
+    evidence_refs: list[str] = Field(default_factory=list)
+
+
+class DiagnosticReportDetail(BaseModel):
+    """Full report including metrics payload (issue #23)."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    org_id: uuid.UUID
+    range_start: date
+    range_end: date
+    version: int
+    status: str
+    metrics: dict[str, DiagnosticMetricEntry]
+    generation_detail: dict[str, Any]
+    generated_at: datetime | None = None
+    error_message: str | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class DiagnosticMetricEvidencePage(BaseModel):
+    """Paginated evidence refs for one metric on a report."""
+
+    report_id: uuid.UUID
+    metric_key: str
+    value: float | int | None = None
+    items: list[str]
+    page: int
+    limit: int
+    total: int
+    has_more: bool

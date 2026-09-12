@@ -13,6 +13,7 @@ from throughline.api.routes import (
     jira_discovery,
     jira_import,
     jira_oauth,
+    reports,
 )
 from throughline.config import settings
 from throughline.tenancy import reset_current_org_id, set_current_org_id
@@ -20,6 +21,7 @@ from throughline.tenancy import reset_current_org_id, set_current_org_id
 app = FastAPI(title=settings.app_name)
 app.include_router(admin.router)
 app.include_router(auth_routes.router)
+app.include_router(reports.router)
 app.include_router(jira_oauth.admin_router)
 app.include_router(jira_oauth.router)
 app.include_router(jira_discovery.admin_router)
