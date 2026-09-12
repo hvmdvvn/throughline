@@ -14,8 +14,8 @@ AI-assisted requirements and delivery workflow for product teams. Connects Jira 
 
 GitHub issues are the live units of work: https://github.com/hvmdvvn/throughline/issues
 
-## Stack (from plan)
+## Stack
 
-FastAPI (Python 3.12), arq + Redis, Postgres 16 + pgvector, Next.js, Docker.
+FastAPI (Python 3.12), arq + Redis, Postgres 16 + pgvector, SQLAlchemy + Alembic, Next.js, Docker.
 
-**Note:** `_docs/TASKS.md` and some issues still say Django + Celery. That conflict is documented in `_docs/backlog-audit.md` and must be resolved before foundation implementation.
+Backlog and GitHub issues are aligned to `_docs/PLAN.md` (decision 2026-09-12).

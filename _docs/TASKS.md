@@ -1,6 +1,22 @@
 # TASKS.md — Throughline backlog
 
-Stack: Django + Django REST Framework, Celery + Redis, Postgres 16 with pgvector, Next.js frontend, Docker throughout. Django admin is the ops and support UI.
+Stack (aligned to `_docs/PLAN.md`): FastAPI (Python 3.12), arq + Redis, Postgres 16 with pgvector, SQLAlchemy + Alembic, Next.js frontend, Docker throughout. Ops/support surfaces are authenticated admin API endpoints (and later product UI) — not Django admin.
+
+Layout target from plan:
+
+```text
+throughline/
+  api/           FastAPI app — routes, auth, tenancy middleware
+  domain/        Core models and business rules, no I/O
+  pipelines/     The AI graph
+  connectors/    jira/, slack/, github/
+  ingest/        History import, normalization, backfill jobs
+  analytics/     Diagnostic computations
+  memory/        Convention profile, retrieval, permission filtering
+  workers/       arq task definitions
+  evals/         Golden sets, harness, scoring
+  web/           Next.js frontend
+```
 
 Each task is self-contained. Phase boundaries are marked but tasks within a phase can largely be picked up in any order once the foundation (1–9) exists.
 
@@ -9,40 +25,40 @@ Each task is self-contained. Phase boundaries are marked but tasks within a phas
 # Foundation
 
 ## 1. Empty project with a passing test
-Goal: A Django project that runs and has one green test.
-Description: Create the repository, a Django project with a single `core` app, and pytest with pytest-django configured. Write one trivial test asserting the app imports and the settings load. Commit with a README stating how to run the tests.
+Goal: A FastAPI project that runs and has one green test.
+Description: Create the application package under `throughline/` with a minimal FastAPI app in `api/`, domain package stub, pytest configured, and one trivial test asserting the app imports and settings/config load. Update the README with how to run the tests. Repository already exists — do not recreate it.
 
 ## 2. Docker Compose development environment
 Goal: `docker compose up` gives a working web, worker, database, and cache.
-Description: Write a Dockerfile for the Django app and a compose file with services for web, Postgres 16, and Redis. Ensure the app container can reach the database and that the test suite runs inside the container. No application features are needed — just the environment.
+Description: Write a Dockerfile for the FastAPI app and a compose file with services for web (API), arq worker, Postgres 16, and Redis. Ensure the app container can reach the database and that the test suite runs inside the container. No application features are needed — just the environment.
 
 ## 3. Postgres with pgvector enabled
 Goal: The vector extension is available and provably working.
-Description: Extend the Postgres image or init script to install and enable pgvector. Add a Django migration that creates the extension, plus a throwaway model with a vector field. Write a test that stores and retrieves a vector to prove the round trip works.
+Description: Extend the Postgres image or init script to install and enable pgvector. Add an Alembic migration that creates the extension, plus a throwaway model/table with a vector column. Write a test that stores and retrieves a vector to prove the round trip works.
 
 ## 4. Settings and secrets handling
 Goal: Configuration is environment-driven with no secrets in the repo.
-Description: Split Django settings into base/dev/prod, load configuration from environment variables using django-environ or similar, and document every required variable in `.env.example`. Add a check that refuses to boot in production without the required secrets set.
+Description: Split config into base/dev/prod (or equivalent environment modes) using pydantic-settings or similar, load from environment variables, and document every required variable in `.env.example`. Add a check that refuses to boot in production without the required secrets set.
 
 ## 5. CI pipeline
 Goal: Every push runs lint, migrations check, and tests.
-Description: Set up GitHub Actions to install dependencies, spin up Postgres, run `makemigrations --check`, run ruff, and run pytest. The pipeline should fail on missing migrations, which is the most common solo-developer mistake in Django.
+Description: Set up GitHub Actions to install dependencies, spin up Postgres, run an Alembic migration check (fail if models and migrations diverge), run ruff, and run pytest. The pipeline should fail on missing migrations.
 
 ## 6. Tenancy models
-Goal: Organization, User, and Membership models exist and are visible in the admin.
-Description: Create models for `Org`, a custom `User`, and `Membership` linking them with a role field (admin, pm, viewer). Register all three in the Django admin with sensible list displays. Every future model will carry an `org` foreign key, so establish the abstract base model with `org`, `created_at`, `updated_at`, and a soft-delete flag here.
+Goal: Organization, User, and Membership models exist and are listable via an admin API.
+Description: Create models for `Org`, `User`, and `Membership` linking them with a role field (admin, pm, viewer). Expose authenticated admin list endpoints with sensible fields. Every future model will carry an `org_id`, so establish the shared base with `org_id`, `created_at`, `updated_at`, and a soft-delete flag here.
 
 ## 7. Tenancy enforcement layer
 Goal: Cross-tenant data access is impossible by construction.
-Description: Implement a request-scoped current-organization mechanism (middleware plus a thread-local or contextvar) and a base manager that filters every queryset by it. Write tests that prove a query from Org A cannot return Org B's rows, including one test that deliberately tries to bypass it and is expected to fail loudly.
+Description: Implement a request-scoped current-organization mechanism (FastAPI dependency/middleware plus a contextvar) and a session/query helper that filters every tenant-scoped query by it. Write tests that prove a query from Org A cannot return Org B's rows, including one test that deliberately tries to bypass it and is expected to fail loudly.
 
 ## 8. Authentication
 Goal: Users can sign in, and the API authenticates requests.
-Description: Integrate a hosted auth provider (Clerk or WorkOS) using JWT verification in DRF, rather than building auth. Map the provider's user identity onto the local `User` and `Membership` records on first login. SSO comes later but choosing a provider that supports it now avoids a migration.
+Description: Integrate a hosted auth provider (Clerk or WorkOS) using JWT verification in FastAPI dependencies, rather than building auth. Map the provider's user identity onto the local `User` and `Membership` records on first login. SSO comes later but choosing a provider that supports it now avoids a migration.
 
-## 9. Celery and background jobs
+## 9. arq and background jobs
 Goal: Long-running work can be queued, retried, and observed.
-Description: Wire Celery to Redis, add a worker service to compose, and implement one example task that sleeps and logs. Configure retries with exponential backoff and result storage, and add a way to see task status from the Django admin.
+Description: Wire arq to Redis, add a worker service to compose, and implement one example job that sleeps and logs. Configure retries with exponential backoff and result/job status visibility, and expose task status via an authenticated admin API endpoint.
 
 ---
 
@@ -50,7 +66,7 @@ Description: Wire Celery to Redis, add a worker service to compose, and implemen
 
 ## 10. Jira OAuth connection
 Goal: An org can connect its Jira Cloud site and the tokens are stored.
-Description: Register an Atlassian OAuth 2.0 (3LO) app and implement the authorization flow, requesting offline access so refresh tokens are available. Store credentials encrypted per org, with refresh handled transparently. A connection status page in the admin is enough UI for now.
+Description: Register an Atlassian OAuth 2.0 (3LO) app and implement the authorization flow, requesting offline access so refresh tokens are available. Store credentials encrypted per org, with refresh handled transparently. A connection status admin API endpoint (or minimal ops UI) is enough UI for now.
 
 ## 11. Jira API client wrapper
 Goal: A reusable client that handles pagination, rate limits, and retries.
@@ -62,7 +78,7 @@ Description: Fetch and store the connected site's projects, issue types, statuse
 
 ## 13. Issue history import job
 Goal: A full backfill of an instance's issues, resumable after failure.
-Description: Write a Celery task that pages through issues using JQL and stores them, recording a cursor so an interrupted run continues rather than restarting. Real instances hold 100k+ issues, so assume the job will fail partway and design for that. Track import progress on the connection record.
+Description: Write an arq job that pages through issues using JQL and stores them, recording a cursor so an interrupted run continues rather than restarting. Real instances hold 100k+ issues, so assume the job will fail partway and design for that. Track import progress on the connection record.
 
 ## 14. Changelog import
 Goal: Every status transition for imported issues is stored.
@@ -98,15 +114,15 @@ Description: For issues with story points or original estimates, compare against
 
 ## 22. Report aggregation model
 Goal: One stored report object containing all diagnostic findings.
-Description: Define a report model that holds the computed metrics for a given org and date range, along with references to the evidence rows behind each number. Add a Celery task that generates a report end to end. Reports should be reproducible and versioned so results can be compared over time.
+Description: Define a report model that holds the computed metrics for a given org and date range, along with references to the evidence rows behind each number. Add an arq job that generates a report end to end. Reports should be reproducible and versioned so results can be compared over time.
 
 ## 23. Report API
 Goal: The frontend can fetch a report and drill into any number.
-Description: Expose DRF endpoints for listing reports, fetching a report's metrics, and retrieving the underlying evidence rows for a given metric. Paginate evidence lists, since some will be large. Permissions follow the tenancy layer.
+Description: Expose FastAPI endpoints for listing reports, fetching a report's metrics, and retrieving the underlying evidence rows for a given metric. Paginate evidence lists, since some will be large. Permissions follow the tenancy layer.
 
 ## 24. Frontend shell
 Goal: A running Next.js app with authentication and navigation.
-Description: Set up the Next.js project with Tailwind and shadcn/ui, integrate the auth provider, and build the app shell with navigation placeholders for the four eventual destinations. No feature content is needed. Configure it to call the Django API with authenticated requests.
+Description: Set up the Next.js project with Tailwind and shadcn/ui, integrate the auth provider, and build the app shell with navigation placeholders for the four eventual destinations. No feature content is needed. Configure it to call the FastAPI API with authenticated requests.
 
 ## 25. Diagnostic report UI
 Goal: A readable report where every number is clickable.
@@ -134,11 +150,11 @@ Description: Add an Ollama-backed implementation of the provider interface for t
 
 ## 30. Run tracing
 Goal: Every model call is recorded with inputs, outputs, and cost.
-Description: Create a `runs` table capturing pipeline step, model, prompt inputs, retrieved context identifiers, raw output, token counts, cost, and latency. Wrap the provider interface so tracing is automatic rather than remembered. Expose runs in the Django admin for debugging.
+Description: Create a `runs` table capturing pipeline step, model, prompt inputs, retrieved context identifiers, raw output, token counts, cost, and latency. Wrap the provider interface so tracing is automatic rather than remembered. Expose runs via an authenticated admin API for debugging.
 
 ## 31. Cost monitoring
 Goal: Per-org spend is visible and bounded.
-Description: Aggregate cost from the runs table by org and time period, expose it in the admin, and add a configurable threshold that alerts when an org exceeds it. Add a hard cap that refuses further generation for the period. Margin depends on this existing before customers do.
+Description: Aggregate cost from the runs table by org and time period, expose it via an admin API, and add a configurable threshold that alerts when an org exceeds it. Add a hard cap that refuses further generation for the period. Margin depends on this existing before customers do.
 
 ## 32. Request intake model
 Goal: Raw incoming requests can be stored from any source.
@@ -174,7 +190,7 @@ Description: On intake, run a vector search against existing requirements and re
 
 ## 40. Requirement node models
 Goal: The epic/story/AC tree exists as data with full version history.
-Description: Create `RequirementNode` with a self-referential parent, a type field, state, and body; `NodeLink` for typed edges such as derived-from and conflicts-with; and `NodeVersion` recording every change. Write a recursive CTE query for fetching an entire tree efficiently. Register everything in the admin.
+Description: Create `RequirementNode` with a self-referential parent, a type field, state, and body; `NodeLink` for typed edges such as derived-from and conflicts-with; and `NodeVersion` recording every change. Write a recursive CTE query for fetching an entire tree efficiently. Expose list/detail via authenticated admin API endpoints.
 
 ## 41. Extraction step
 Goal: Structured facts are pulled out of raw request text.
@@ -190,11 +206,11 @@ Description: Build a separate frontier-model call with an adversarial prompt tha
 
 ## 44. Convention profile
 Goal: The org's spec-writing conventions are stored and injected.
-Description: Create a conventions model with rule text, scope, a formatting-versus-semantic tier, status, and version history, plus an editable admin view. Seed it from imported Jira history by extracting recurring structural patterns with schema-constrained output. Inject active rules into decomposition prompts.
+Description: Create a conventions model with rule text, scope, a formatting-versus-semantic tier, status, and version history, plus editable admin API endpoints. Seed it from imported Jira history by extracting recurring structural patterns with schema-constrained output. Inject active rules into decomposition prompts.
 
 ## 45. Domain glossary
 Goal: Org-specific terms are captured and used in generation.
-Description: Extract recurring entities, systems, and terms from imported history into a glossary table, and include relevant entries in generation context. Keep extraction schema-constrained so confidential project content cannot leak into an org-wide artifact. Make the glossary editable by admins.
+Description: Extract recurring entities, systems, and terms from imported history into a glossary table, and include relevant entries in generation context. Keep extraction schema-constrained so confidential project content cannot leak into an org-wide artifact. Make the glossary editable by admins via API.
 
 ## 46. Estimation step
 Goal: Each story gets a range with visible comparables.
@@ -206,7 +222,7 @@ Description: Create a `Diff` model holding proposed changes, author type, ration
 
 ## 48. Diff review API
 Goal: Diffs can be listed, inspected, and decided through the API.
-Description: Expose endpoints for pending diffs, a diff's detail with before/after per node, and accept/reject/edit actions. Record who decided what and when for the audit trail. Support partial acceptance — accepting some nodes while rejecting others.
+Description: Expose FastAPI endpoints for pending diffs, a diff's detail with before/after per node, and accept/reject/edit actions. Record who decided what and when for the audit trail. Support partial acceptance — accepting some nodes while rejecting others.
 
 ## 49. Diff review UI
 Goal: A PM can review a proposed tree node by node.

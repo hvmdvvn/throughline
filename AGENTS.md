@@ -50,14 +50,7 @@ Derived from `_docs/PLAN.md` and existing repo decisions only:
 - Everything containerized from commit one.
 - Secrets never committed; document required env vars.
 - Work one GitHub issue at a time through PM → Engineer → QA. See `_docs/process.md`.
-
-### Unresolved: stack conflict
-
-`_docs/PLAN.md` specifies **FastAPI + arq + Redis**.
-
-`_docs/TASKS.md` and GitHub issues 1–9+ specify **Django + DRF + Celery**.
-
-Do not implement foundation issues until this conflict is resolved by a human decision. See `_docs/backlog-audit.md`.
+- **Stack decision (2026-09-12):** FastAPI + arq + Redis + SQLAlchemy/Alembic. Backlog aligned to `_docs/PLAN.md`. Do not introduce Django or Celery.
 
 ## Documents
 

@@ -16,24 +16,11 @@ Sources: `_docs/PLAN.md`, `_docs/TASKS.md`, GitHub issues #1–#68, git history
 | Duplicates | None among #1–#68 |
 | Missing referenced doc | `product-definition.md` (cited by plan; not in repo) |
 
-## Critical blocker: stack conflict
+## Stack decision (resolved 2026-09-12)
 
-| Source | API | Workers | Admin / API style |
-|---|---|---|---|
-| `_docs/PLAN.md` (product SoT) | FastAPI (Python 3.12) | arq + Redis | FastAPI routes; service layout under `throughline/{api,domain,workers,...}` |
-| `_docs/TASKS.md` + issues | Django + DRF | Celery + Redis | Django admin as ops UI; many issues cite Django/Celery/DRF explicitly |
+**Chosen:** align backlog to `_docs/PLAN.md` — **FastAPI + arq + SQLAlchemy/Alembic**. No Django, no Celery.
 
-Affected issues (non-exhaustive): **#1–#9**, **#13**, **#22**, **#23**, **#24**, **#30**, and any later issue that assumes Django admin or Celery tasks.
-
-**Rule:** do not silently choose. Human decision required before grooming foundation issues into implementable ACs.
-
-Recommended decision options:
-
-1. **Align backlog to plan** — rewrite foundation/Phase 0 issues to FastAPI + arq; keep Django out.
-2. **Amend plan to Django** — update `_docs/PLAN.md` stack + service layout to Django + Celery; keep issues as seeded.
-3. **Hybrid** (not recommended without explicit design) — e.g. FastAPI API + separate admin; would need a written architecture decision.
-
-Until resolved: foundation issues are **not eligible** for implementation.
+`_docs/TASKS.md` and GitHub issues rewritten accordingly. Foundation issues unblocked for grooming.
 
 ## Issue inventory by phase
 
