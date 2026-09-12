@@ -36,6 +36,7 @@ Requires Python 3.12+. Create and activate a virtualenv first (`python -m venv .
 | Job status (admin, auth) | `GET /admin/jobs/{job_id}` |
 | Jira issue history import (admin, auth) | `POST /admin/jira/import` (enqueue arq job); `GET /admin/jira/import` (progress) |
 | Jira changelog import (admin, auth) | `POST /admin/jira/changelog` (enqueue arq job); `GET /admin/jira/changelog` (progress) |
+| Public Jira corpus (local/dev) | `python -m throughline.ingest.corpus` (fixture subset); optional `--remote` (manual ASF fetch). ToS: `_docs/public-jira-corpus.md` |
 | Lint | `ruff check .` |
 | Apply migrations (host, needs Postgres) | `alembic upgrade head` |
 | Migration drift check (host, needs Postgres) | `alembic check` |
@@ -75,7 +76,8 @@ Derived from `_docs/PLAN.md` and existing repo decisions only:
 | `_docs/team/pm.md` | PM grooming role |
 | `_docs/team/software-engineer.md` | Engineer implementation role |
 | `_docs/team/qa-engineer.md` | QA verification role |
-| `_docs/backlog-audit.md` | Backlog audit findings |
+| [`_docs/backlog-audit.md`](_docs/backlog-audit.md) | Backlog audit findings |
+| [`_docs/public-jira-corpus.md`](_docs/public-jira-corpus.md) | Public Jira corpus ToS verification (issue #16) |
 | `README.md` | Human-facing project overview |
 
 Missing but referenced by plan: `product-definition.md` (what/why). Do not invent it.

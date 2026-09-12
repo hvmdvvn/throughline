@@ -31,7 +31,6 @@ from throughline.db.models import (
     SyncRunStatus,
     SyncState,
 )
-from throughline.ingest.normalize import load_org_field_map, sync_canonical_issue_from_jira_payload
 from throughline.tenancy import skip_tenant_enforcement
 
 logger = logging.getLogger(__name__)
@@ -279,6 +278,9 @@ def _upsert_issue(
         existing.jira_updated_at = _parse_jira_datetime(fields.get("updated"))
 
     # Canonical row for analytics — Jira field ids stay out of domain models (#15).
+    # Lazy import avoids cycle: ingest.normalize → connectors.jira → this module.
+    from throughline.ingest.normalize import sync_canonical_issue_from_jira_payload
+
     sync_canonical_issue_from_jira_payload(db, org_id, issue, field_map=field_map)
 
 
@@ -318,6 +320,8 @@ def run_issue_history_import(
     db.commit()
 
     search_fields = _search_fields(db)
+    from throughline.ingest.normalize import load_org_field_map
+
     field_map = load_org_field_map(db)
     pages_processed = 0
     try:

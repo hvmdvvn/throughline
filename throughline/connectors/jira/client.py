@@ -49,11 +49,16 @@ class JiraAPIError(RuntimeError):
 
 @dataclass(frozen=True)
 class JiraAuth:
-    """Injectable org-scoped credentials for the REST client."""
+    """Injectable org-scoped credentials for the REST client.
+
+    ``anonymous=True`` omits the Authorization header (public Server sites such
+    as ASF Jira). Customer Cloud OAuth always uses a non-empty bearer token.
+    """
 
     access_token: str
     cloud_id: str | None = None
     base_url: str | None = None
+    anonymous: bool = False
 
 
 def api_v3_base_url(cloud_id: str, *, gateway: str = "https://api.atlassian.com") -> str:
@@ -163,8 +168,9 @@ class JiraClient:
         if max_attempts < 1:
             raise ValueError("max_attempts must be >= 1")
         token = auth.access_token.strip()
-        if not token:
+        if not auth.anonymous and not token:
             raise JiraAPIError("access_token is required")
+        self._anonymous = bool(auth.anonymous)
         self._access_token = token
         self._base_url = _resolve_base_url(auth, gateway=gateway)
         self._max_attempts = max_attempts
@@ -177,6 +183,10 @@ class JiraClient:
     @property
     def base_url(self) -> str:
         return self._base_url
+
+    @property
+    def anonymous(self) -> bool:
+        return self._anonymous
 
     @classmethod
     def from_cloud(
@@ -199,11 +209,15 @@ class JiraClient:
         cls,
         *,
         base_url: str,
-        access_token: str,
+        access_token: str = "",
+        anonymous: bool = False,
         **kwargs: Any,
     ) -> JiraClient:
-        """Build a client with an explicit REST v3 base URL (fixture / site URL)."""
-        return cls(JiraAuth(access_token=access_token, base_url=base_url), **kwargs)
+        """Build a client with an explicit REST base URL (fixture / public site)."""
+        return cls(
+            JiraAuth(access_token=access_token, base_url=base_url, anonymous=anonymous),
+            **kwargs,
+        )
 
     def _build_url(self, path: str) -> str:
         if path.startswith("http://") or path.startswith("https://"):
@@ -225,9 +239,10 @@ class JiraClient:
         body: bytes | None = None
         req_headers: dict[str, str] = {
             "Accept": "application/json",
-            "Authorization": f"Bearer {self._access_token}",
             "User-Agent": "throughline",
         }
+        if not self._anonymous:
+            req_headers["Authorization"] = f"Bearer {self._access_token}"
         if headers:
             req_headers.update(headers)
         if json_body is not None:

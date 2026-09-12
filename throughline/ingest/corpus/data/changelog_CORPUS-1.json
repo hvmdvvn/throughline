@@ -1,0 +1,39 @@
+{
+  "self": "https://issues.apache.org/jira/rest/api/2/issue/CORPUS-1/changelog?startAt=0&maxResults=100",
+  "maxResults": 100,
+  "startAt": 0,
+  "total": 2,
+  "isLast": true,
+  "values": [
+    {
+      "id": "91001",
+      "author": {"name": "dev", "displayName": "Dev User"},
+      "created": "2024-06-02T12:00:00.000+0000",
+      "items": [
+        {
+          "field": "status",
+          "fieldtype": "jira",
+          "from": "1",
+          "fromString": "Open",
+          "to": "3",
+          "toString": "In Progress"
+        }
+      ]
+    },
+    {
+      "id": "91002",
+      "author": {"name": "dev", "displayName": "Dev User"},
+      "created": "2024-06-03T16:00:00.000+0000",
+      "items": [
+        {
+          "field": "status",
+          "fieldtype": "jira",
+          "from": "3",
+          "fromString": "In Progress",
+          "to": "5",
+          "toString": "Resolved"
+        }
+      ]
+    }
+  ]
+}

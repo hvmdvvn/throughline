@@ -30,6 +30,9 @@ dev = [
 [tool.setuptools.packages.find]
 include = ["throughline*"]
 
+[tool.setuptools.package-data]
+"throughline.ingest.corpus" = ["data/*.json"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
