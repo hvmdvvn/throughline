@@ -52,6 +52,7 @@ services:
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       APP_NAME: ${APP_NAME:-Throughline}
       DEBUG: ${DEBUG:-true}
+      ADMIN_API_KEY: ${ADMIN_API_KEY:-dev-admin-api-key}
     depends_on:
       db:
         condition: service_healthy

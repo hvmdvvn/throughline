@@ -8,7 +8,12 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 
 from throughline.db.base import Base
-from throughline.db.models import DevPgvectorProof  # noqa: F401 — register metadata
+from throughline.db.models import (  # noqa: F401 — register metadata
+    DevPgvectorProof,
+    Membership,
+    Org,
+    User,
+)
 from throughline.db.session import sqlalchemy_database_url
 
 config = context.config

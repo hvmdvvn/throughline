@@ -46,6 +46,10 @@ class Settings(BaseSettings):
     database_url: str = ""
     redis_url: str = ""
 
+    # Temporary admin list-API auth until hosted JWT (issue #8). Bearer token.
+    # Development default is intentional and documented; override via env in real deploys.
+    admin_api_key: str = "dev-admin-api-key"
+
     # Optional stubs for upcoming foundation work (issues #8+). Not required to boot.
     clerk_secret_key: str | None = Field(default=None)
     workos_api_key: str | None = Field(default=None)
