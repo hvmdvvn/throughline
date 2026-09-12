@@ -28,6 +28,7 @@ from throughline.db.models import (
     SyncRunStatus,
     SyncState,
 )
+from throughline.ingest.normalize import sync_canonical_transitions_for_issue
 from throughline.tenancy import skip_tenant_enforcement
 
 logger = logging.getLogger(__name__)
@@ -351,6 +352,8 @@ def _import_issue_changelog(
                 issue_key=issue.issue_key,
                 history=history,
             )
+    # Canonical transitions for analytics (issue #15) — no Jira field ids.
+    sync_canonical_transitions_for_issue(db, org_id, issue.issue_key)
     issue.changelog_imported_at = datetime.now(UTC)
     return transitions_stored
 

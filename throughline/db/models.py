@@ -5,6 +5,7 @@ Jira OAuth connection (issue #10): ``JiraConnection`` — encrypted per-org toke
 Jira discovery (issue #12): ``Project``, issue types / statuses / fields, field mappings.
 History import (issue #13): ``JiraIssue``, ``SyncState``; import progress on ``JiraConnection``.
 Changelog import (issue #14): ``JiraStatusTransition``; sibling sync_state + connection progress.
+Canonical normalization (issue #15): ``Issue``, ``IssueTransition`` — no Jira field ids.
 ``DevPgvectorProof`` is a disposable foundation table used only to prove
 pgvector round-trips (issue #3). It is not a product embeddings table.
 """
@@ -20,6 +21,7 @@ from sqlalchemy import (
     Boolean,
     DateTime,
     Enum,
+    Float,
     ForeignKey,
     Integer,
     LargeBinary,
@@ -397,7 +399,7 @@ class JiraIssue(TenantScopedMixin, Base):
     status_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
     issue_type_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     issue_type_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
-    # Full search payload for later normalization (#15); not parsed in app logic.
+    # Full search payload for canonical normalization (#15).
     raw_json: Mapped[str | None] = mapped_column(Text, nullable=True)
     jira_created_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
@@ -449,6 +451,74 @@ class JiraStatusTransition(TenantScopedMixin, Base):
     from_status_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     to_status_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
     to_status_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+
+
+class Issue(TenantScopedMixin, Base):
+    """Canonical issue row for analytics — independent of Jira field ids (issue #15).
+
+    Populated by the ingest mapping layer from connector-stored payloads using
+    per-org field mappings. Soft-delete only.
+    """
+
+    __tablename__ = "issues"
+    __table_args__ = (
+        UniqueConstraint("org_id", "external_key", name="uq_issues_org_external_key"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+    # Connector-facing issue identifier (e.g. Jira issue key) — not a custom field id.
+    external_key: Mapped[str] = mapped_column(String(64), nullable=False)
+    project_key: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    summary: Mapped[str | None] = mapped_column(Text, nullable=True)
+    status: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    issue_type: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    acceptance_criteria: Mapped[str | None] = mapped_column(Text, nullable=True)
+    story_points: Mapped[float | None] = mapped_column(Float, nullable=True)
+    source_created_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    source_updated_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
+
+class IssueTransition(TenantScopedMixin, Base):
+    """Canonical status transition for analytics (issue #15).
+
+    ``external_event_id`` / ``event_index`` are opaque connector event coordinates
+    for idempotent upserts — not Jira custom-field names.
+    """
+
+    __tablename__ = "issue_transitions"
+    __table_args__ = (
+        UniqueConstraint(
+            "org_id",
+            "external_key",
+            "external_event_id",
+            "event_index",
+            name="uq_issue_transitions_org_key_event_item",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+    external_key: Mapped[str] = mapped_column(String(64), nullable=False)
+    transitioned_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    from_status: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    to_status: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    actor_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    actor_display_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    external_event_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    event_index: Mapped[int] = mapped_column(Integer, nullable=False)
 
 
 class DevPgvectorProof(Base):

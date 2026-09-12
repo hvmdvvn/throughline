@@ -19,9 +19,19 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from throughline.connectors.jira.client import JiraAPIError, JiraClient
-from throughline.connectors.jira.discovery import build_client_for_connection
+from throughline.connectors.jira.discovery import (
+    build_client_for_connection,
+    resolve_mapped_field_id,
+)
 from throughline.connectors.jira.service import get_active_connection
-from throughline.db.models import JiraConnection, JiraIssue, SyncRunStatus, SyncState
+from throughline.db.models import (
+    JiraConnection,
+    JiraFieldConcept,
+    JiraIssue,
+    SyncRunStatus,
+    SyncState,
+)
+from throughline.ingest.normalize import load_org_field_map, sync_canonical_issue_from_jira_payload
 from throughline.tenancy import skip_tenant_enforcement
 
 logger = logging.getLogger(__name__)
@@ -31,10 +41,21 @@ SYNC_KEY_ISSUE_HISTORY = "issue_history"
 DEFAULT_IMPORT_JQL = "ORDER BY key ASC"
 DEFAULT_PAGE_SIZE = 50
 # Fields needed for Phase 0 analytics scaffolding; comments deferred to #69.
-_SEARCH_FIELDS = (
+# Mapped custom-field ids are appended at runtime from per-org mappings (#12/#15).
+_SEARCH_FIELDS_BASE = (
     "summary,status,issuetype,project,created,updated,description,"
     "labels,priority,assignee,reporter"
 )
+
+
+def _search_fields(db: Session) -> str:
+    """Compose /search fields list including org-mapped custom fields when set."""
+    parts = [_SEARCH_FIELDS_BASE]
+    for concept in JiraFieldConcept:
+        field_id = resolve_mapped_field_id(db, concept)
+        if field_id:
+            parts.append(field_id)
+    return ",".join(parts)
 
 
 @dataclass(frozen=True)
@@ -192,7 +213,13 @@ def import_progress_view(db: Session) -> ImportProgressView:
     )
 
 
-def _upsert_issue(db: Session, org_id: uuid.UUID, issue: dict[str, Any]) -> None:
+def _upsert_issue(
+    db: Session,
+    org_id: uuid.UUID,
+    issue: dict[str, Any],
+    *,
+    field_map: dict[JiraFieldConcept, str | None] | None = None,
+) -> None:
     key = issue.get("key")
     external_id = issue.get("id")
     if not isinstance(key, str) or not key.strip():
@@ -238,19 +265,21 @@ def _upsert_issue(db: Session, org_id: uuid.UUID, issue: dict[str, Any]) -> None
             jira_updated_at=_parse_jira_datetime(fields.get("updated")),
         )
         db.add(row)
-        return
+    else:
+        existing.deleted_at = None
+        existing.external_id = ext
+        existing.project_key = _project_key(fields)
+        existing.summary = summary_str
+        existing.status_name = status_name
+        existing.status_id = status_id
+        existing.issue_type_name = type_name
+        existing.issue_type_id = type_id
+        existing.raw_json = payload
+        existing.jira_created_at = _parse_jira_datetime(fields.get("created"))
+        existing.jira_updated_at = _parse_jira_datetime(fields.get("updated"))
 
-    existing.deleted_at = None
-    existing.external_id = ext
-    existing.project_key = _project_key(fields)
-    existing.summary = summary_str
-    existing.status_name = status_name
-    existing.status_id = status_id
-    existing.issue_type_name = type_name
-    existing.issue_type_id = type_id
-    existing.raw_json = payload
-    existing.jira_created_at = _parse_jira_datetime(fields.get("created"))
-    existing.jira_updated_at = _parse_jira_datetime(fields.get("updated"))
+    # Canonical row for analytics — Jira field ids stay out of domain models (#15).
+    sync_canonical_issue_from_jira_payload(db, org_id, issue, field_map=field_map)
 
 
 def run_issue_history_import(
@@ -288,6 +317,8 @@ def run_issue_history_import(
     _mirror_progress_to_connection(connection, sync)
     db.commit()
 
+    search_fields = _search_fields(db)
+    field_map = load_org_field_map(db)
     pages_processed = 0
     try:
         while True:
@@ -308,7 +339,7 @@ def run_issue_history_import(
                     "jql": query,
                     "startAt": start_at,
                     "maxResults": page_size,
-                    "fields": _SEARCH_FIELDS,
+                    "fields": search_fields,
                 },
             )
             if not isinstance(payload, dict):
@@ -325,7 +356,7 @@ def run_issue_history_import(
             for issue in issues:
                 if not isinstance(issue, dict):
                     raise JiraAPIError("Search issue entry is not an object")
-                _upsert_issue(db, org_id, issue)
+                _upsert_issue(db, org_id, issue, field_map=field_map)
 
             pages_processed += 1
             page_len = len(issues)

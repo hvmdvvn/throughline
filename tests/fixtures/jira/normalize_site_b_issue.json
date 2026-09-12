@@ -1,0 +1,14 @@
+{
+  "id": "20001",
+  "key": "STORY-1",
+  "fields": {
+    "summary": "Ship canonical normalization",
+    "status": {"id": "3", "name": "In Progress"},
+    "issuetype": {"id": "20000", "name": "Story"},
+    "project": {"id": "20000", "key": "ALPHA", "name": "Alpha"},
+    "created": "2024-02-01T10:00:00.000+0000",
+    "updated": "2024-02-02T12:00:00.000+0000",
+    "customfield_20001": "Given a mapping\nWhen normalized\nThen shape is stable",
+    "customfield_20002": 5
+  }
+}
