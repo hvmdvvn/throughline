@@ -339,6 +339,8 @@ def test_persist_and_read_canonical_without_jira_client(db_session, org_ready):
             created_at=issues[0].created_at,
             updated_at=issues[0].updated_at,
             epic_key=None,
+            description=issues[0].description,
+            team_key=None,
         )
 
         transitioned_at = datetime(2024, 2, 1, 15, 0, tzinfo=UTC)

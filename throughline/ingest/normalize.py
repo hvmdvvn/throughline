@@ -67,9 +67,11 @@ def upsert_canonical_issue(db: Session, org_id: uuid.UUID, issue: CanonicalIssue
             external_key=issue.external_key,
             project_key=issue.project_key,
             epic_key=issue.epic_key,
+            team_key=issue.team_key,
             summary=issue.summary,
             status=issue.status,
             issue_type=issue.issue_type,
+            description=issue.description,
             acceptance_criteria=issue.acceptance_criteria,
             story_points=issue.story_points,
             source_created_at=issue.created_at,
@@ -81,9 +83,11 @@ def upsert_canonical_issue(db: Session, org_id: uuid.UUID, issue: CanonicalIssue
     existing.deleted_at = None
     existing.project_key = issue.project_key
     existing.epic_key = issue.epic_key
+    existing.team_key = issue.team_key
     existing.summary = issue.summary
     existing.status = issue.status
     existing.issue_type = issue.issue_type
+    existing.description = issue.description
     existing.acceptance_criteria = issue.acceptance_criteria
     existing.story_points = issue.story_points
     existing.source_created_at = issue.created_at
@@ -244,6 +248,8 @@ def sync_canonical_issue_from_jira_row(
             created_at=jira_issue.jira_created_at,
             updated_at=jira_issue.jira_updated_at,
             epic_key=None,
+            description=None,
+            team_key=None,
         )
     return upsert_canonical_issue(db, org_id, canonical)
 

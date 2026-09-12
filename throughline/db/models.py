@@ -12,6 +12,9 @@ detections with evidence refs; frequency aggregates by epic/project/month.
 Scope change metrics (issue #19): ``IssueFieldChange``, ``LateChildEvent``,
 ``SpecChangeEvent``, ``ScopeChangeAggregate`` — late epic children and
 post-start description/AC edits as spec-instability proxies.
+Spec quality indicators (issue #20): ``SpecQualityIssueIndicator``,
+``SpecQualityAggregate`` — underspecification proxies (not quality scores);
+comment-traffic blocked until comment import (#69).
 ``DevPgvectorProof`` is a disposable foundation table used only to prove
 pgvector round-trips (issue #3). It is not a product embeddings table.
 """
@@ -484,9 +487,13 @@ class Issue(TenantScopedMixin, Base):
     project_key: Mapped[str | None] = mapped_column(String(64), nullable=True)
     # Parent epic external key when known (Phase 0 reopen aggregates; optional).
     epic_key: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    # Optional team dimension for aggregates (issue #20); never a person id.
+    team_key: Mapped[str | None] = mapped_column(String(64), nullable=True)
     summary: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[str | None] = mapped_column(String(255), nullable=True)
     issue_type: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    # Plain-text description for length indicators (issue #20).
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
     acceptance_criteria: Mapped[str | None] = mapped_column(Text, nullable=True)
     story_points: Mapped[float | None] = mapped_column(Float, nullable=True)
     source_created_at: Mapped[datetime | None] = mapped_column(
@@ -770,6 +777,93 @@ class ScopeChangeAggregate(TenantScopedMixin, Base):
     dimension_key: Mapped[str] = mapped_column(String(64), nullable=False, default="")
     late_child_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     spec_change_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
+
+class SpecQualityIssueIndicator(TenantScopedMixin, Base):
+    """Per-issue underspecification proxies — indicators, not a quality score (#20).
+
+    Field names avoid graded scores. ``ac_coverage`` is explicit when the org
+    has no acceptance-criteria field mapping (not a silent zero). Comment
+    traffic stays ``unavailable_pending_issue_69`` until comment import (#69).
+    Soft-delete only.
+    """
+
+    __tablename__ = "spec_quality_issue_indicators"
+    __table_args__ = (
+        UniqueConstraint(
+            "org_id",
+            "external_key",
+            name="uq_spec_quality_issue_indicators_org_key",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+    external_key: Mapped[str] = mapped_column(String(64), nullable=False)
+    project_key: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    # Team dimension key — empty when unknown; never a person id.
+    team_key: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    # ``mapping_unavailable`` | ``missing_or_empty`` | ``present``
+    ac_coverage: Mapped[str] = mapped_column(String(32), nullable=False)
+    description_length_chars: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    # ``empty`` | ``short`` | ``long`` — length bucket indicator, not a grade.
+    description_length_bucket: Mapped[str] = mapped_column(String(16), nullable=False)
+    # ``unavailable_pending_issue_69`` until comments are imported (#69).
+    comment_traffic_status: Mapped[str] = mapped_column(String(64), nullable=False)
+    # Null while comment import (#69) is unavailable; never invent zeros as traffic.
+    comment_traffic_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    observed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    # Drill-down: issue:{key}/spec-quality-indicators
+    evidence_ref: Mapped[str] = mapped_column(String(255), nullable=False)
+
+
+class SpecQualityAggregate(TenantScopedMixin, Base):
+    """Spec-quality indicator rollups by project or team and calendar month (#20).
+
+    Counts and coverage only — no composite quality score. Soft-delete only.
+    """
+
+    __tablename__ = "spec_quality_aggregates"
+    __table_args__ = (
+        UniqueConstraint(
+            "org_id",
+            "period_start",
+            "period_grain",
+            "dimension",
+            "dimension_key",
+            name="uq_spec_quality_aggregates_org_period_dim",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+    period_start: Mapped[date] = mapped_column(Date, nullable=False)
+    period_grain: Mapped[str] = mapped_column(String(16), nullable=False, default="month")
+    # ``project`` or ``team`` — not per-person.
+    dimension: Mapped[str] = mapped_column(String(32), nullable=False)
+    dimension_key: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    issue_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    ac_present_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    ac_missing_or_empty_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    ac_mapping_unavailable_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    description_empty_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    description_short_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    description_long_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    description_length_chars_sum: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    # True when comment-traffic indicators are blocked on #69 for this slice.
+    comment_traffic_unavailable: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=True,
+    )
+    # Issue keys counted in this aggregate for drill-down (evidence refs).
+    evidence_issue_keys: Mapped[list[Any]] = mapped_column(JSONB, nullable=False)
 
 
 class DevPgvectorProof(Base):

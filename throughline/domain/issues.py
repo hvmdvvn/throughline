@@ -25,6 +25,10 @@ class CanonicalIssue:
     updated_at: datetime | None
     # Parent epic external key when known (late-child / reopen slices).
     epic_key: str | None = None
+    # Plain-text description for length indicators (issue #20); system field.
+    description: str | None = None
+    # Optional team dimension key for project/team aggregates (never a person id).
+    team_key: str | None = None
 
 
 @dataclass(frozen=True, slots=True)

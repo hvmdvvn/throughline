@@ -208,6 +208,9 @@ def map_jira_issue_payload(
         created_at=_parse_jira_datetime(fields.get("created")),
         updated_at=_parse_jira_datetime(fields.get("updated")),
         epic_key=_epic_key(fields),
+        description=field_value_as_text(fields.get("description")),
+        # Team is not a standard Jira system field; leave unset until mapped.
+        team_key=None,
     )
 
 
