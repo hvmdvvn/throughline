@@ -15,7 +15,10 @@ from throughline.workers.jobs import (
     EXAMPLE_JOB_MAX_TRIES,
     IMPORT_JOB_KEEP_RESULT_SECONDS,
     IMPORT_JOB_MAX_TRIES,
+    REPORT_JOB_KEEP_RESULT_SECONDS,
+    REPORT_JOB_MAX_TRIES,
     example_sleep_log,
+    generate_diagnostic_report_job,
     import_jira_changelog,
     import_jira_issue_history,
 )
@@ -53,6 +56,15 @@ import_jira_changelog_job = func(
     max_tries=CHANGELOG_JOB_MAX_TRIES,
 )
 
+# Versioned diagnostic report snapshot (issue #22). Each enqueue creates a new
+# report version for the org + date range; prior versions stay immutable.
+generate_diagnostic_report_arq_job = func(
+    generate_diagnostic_report_job,
+    name="generate_diagnostic_report",
+    keep_result=REPORT_JOB_KEEP_RESULT_SECONDS,
+    max_tries=REPORT_JOB_MAX_TRIES,
+)
+
 
 class WorkerSettings:
     """Run with: ``arq throughline.workers.settings.WorkerSettings``.
@@ -77,6 +89,7 @@ class WorkerSettings:
         example_sleep_log_job,
         import_jira_issue_history_job,
         import_jira_changelog_job,
+        generate_diagnostic_report_arq_job,
     ]
     redis_settings = RedisSettings.from_dsn(settings.redis_url)
 

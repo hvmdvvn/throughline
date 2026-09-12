@@ -18,6 +18,8 @@ comment-traffic blocked until comment import (#69).
 Estimation accuracy (issue #21): ``EstimationAccuracyIssueMetric``,
 ``EstimationAccuracyAggregate`` — estimate vs cycle time with coverage;
 per-team only (never per-person).
+Diagnostic reports (issue #22): ``DiagnosticReport`` — versioned immutable
+snapshots of Phase 0 metrics + evidence refs for an org date range.
 ``DevPgvectorProof`` is a disposable foundation table used only to prove
 pgvector round-trips (issue #3). It is not a product embeddings table.
 """
@@ -954,6 +956,56 @@ class EstimationAccuracyAggregate(TenantScopedMixin, Base):
     # Sum of comparable accuracy ratios for mean = sum / comparable_count.
     accuracy_ratio_sum: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     evidence_issue_keys: Mapped[list[Any]] = mapped_column(JSONB, nullable=False)
+
+
+class DiagnosticReportStatus(enum.StrEnum):
+    """Lifecycle of a diagnostic report generation (issue #22)."""
+
+    PENDING = "pending"
+    SUCCESS = "success"
+    PARTIAL = "partial"
+    FAILED = "failed"
+
+
+class DiagnosticReport(TenantScopedMixin, Base):
+    """Versioned diagnostic metrics snapshot for an org + date range (#22).
+
+    Each generation inserts a new ``version`` for the same
+    ``(org_id, range_start, range_end)``. Completed rows are not rewritten so
+    historical comparisons stay stable. Soft-delete only.
+    """
+
+    __tablename__ = "diagnostic_reports"
+    __table_args__ = (
+        UniqueConstraint(
+            "org_id",
+            "range_start",
+            "range_end",
+            "version",
+            name="uq_diagnostic_reports_org_range_version",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+    range_start: Mapped[date] = mapped_column(Date, nullable=False)
+    range_end: Mapped[date] = mapped_column(Date, nullable=False)
+    # Monotonic per org+range; re-runs allocate the next integer.
+    version: Mapped[int] = mapped_column(Integer, nullable=False)
+    # ``pending`` | ``success`` | ``partial`` | ``failed``
+    status: Mapped[str] = mapped_column(String(16), nullable=False)
+    # metric_key → {value, evidence_refs: [...]}; empty until generation finishes.
+    metrics: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    # Per-family generation notes: {family: {ok: bool, error?: str, ...}}.
+    generation_detail: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    generated_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
 
 
 class DevPgvectorProof(Base):

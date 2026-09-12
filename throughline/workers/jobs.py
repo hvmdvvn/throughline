@@ -1,4 +1,4 @@
-"""arq job functions (issue #9 / #13 / #14).
+"""arq job functions (issue #9 / #13 / #14 / #22).
 
 Retries use exponential backoff via ``arq.Retry(defer=...)``. Callers that need
 a retry should raise::
@@ -12,6 +12,9 @@ and ``WorkerSettings.max_tries`` / per-job ``max_tries``).
 Issue history import (issue #13) and changelog import (issue #14) persist their
 own ``sync_state`` cursors so a killed worker continues mid-backfill; arq
 retries are secondary to those cursors.
+
+Diagnostic report generation (issue #22) snapshots analytics into a versioned
+``diagnostic_reports`` row; failures leave ``failed`` / ``partial`` status.
 """
 
 from __future__ import annotations
@@ -19,8 +22,10 @@ from __future__ import annotations
 import asyncio
 import logging
 import uuid
+from datetime import date
 from typing import Any
 
+from throughline.analytics.diagnostic_report import generate_diagnostic_report
 from throughline.connectors.jira.import_changelog import run_changelog_import_for_org
 from throughline.connectors.jira.import_history import run_issue_history_import_for_org
 from throughline.db.session import get_session_factory
@@ -38,6 +43,9 @@ IMPORT_JOB_KEEP_RESULT_SECONDS = 3600
 
 CHANGELOG_JOB_MAX_TRIES = 5
 CHANGELOG_JOB_KEEP_RESULT_SECONDS = 3600
+
+REPORT_JOB_MAX_TRIES = 5
+REPORT_JOB_KEEP_RESULT_SECONDS = 3600
 
 
 def exponential_backoff_seconds(
@@ -109,6 +117,43 @@ async def import_jira_changelog(
                 "completed": result.completed,
                 "issues_processed": result.issues_processed,
                 "transitions_stored": result.transitions_stored,
+            }
+
+    return await asyncio.to_thread(_run)
+
+
+async def generate_diagnostic_report_job(
+    ctx: dict[str, Any],
+    org_id: str,
+    range_start: str,
+    range_end: str,
+) -> dict[str, Any]:
+    """Generate a versioned diagnostic report for ``org_id`` + date range (#22).
+
+    ``range_start`` / ``range_end`` are ISO dates (``YYYY-MM-DD``). Each run
+    inserts a new report version; prior versions are left untouched.
+    """
+    _ = ctx
+    org_uuid = uuid.UUID(org_id)
+    start = date.fromisoformat(range_start)
+    end = date.fromisoformat(range_end)
+    session_factory = get_session_factory()
+
+    def _run() -> dict[str, Any]:
+        with session_factory() as db:
+            with use_org(org_uuid):
+                report = generate_diagnostic_report(db, org_uuid, start, end)
+            db.commit()
+            return {
+                "ok": report.status in {"success", "partial"},
+                "org_id": str(org_uuid),
+                "report_id": str(report.id),
+                "version": report.version,
+                "status": report.status,
+                "range_start": report.range_start.isoformat(),
+                "range_end": report.range_end.isoformat(),
+                "metric_keys": sorted(report.metrics.keys()),
+                "error_message": report.error_message,
             }
 
     return await asyncio.to_thread(_run)

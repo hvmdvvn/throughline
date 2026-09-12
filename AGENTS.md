@@ -36,6 +36,7 @@ Requires Python 3.12+. Create and activate a virtualenv first (`python -m venv .
 | Job status (admin, auth) | `GET /admin/jobs/{job_id}` |
 | Jira issue history import (admin, auth) | `POST /admin/jira/import` (enqueue arq job); `GET /admin/jira/import` (progress) |
 | Jira changelog import (admin, auth) | `POST /admin/jira/changelog` (enqueue arq job); `GET /admin/jira/changelog` (progress) |
+| Diagnostic report (arq) | `generate_diagnostic_report` job — args `org_id`, `range_start`, `range_end` (ISO dates); HTTP surface is issue #23 |
 | Public Jira corpus (local/dev) | `python -m throughline.ingest.corpus` (fixture subset); optional `--remote` (manual ASF fetch). ToS: `_docs/public-jira-corpus.md` |
 | Lint | `ruff check .` |
 | Apply migrations (host, needs Postgres) | `alembic upgrade head` |

@@ -10,6 +10,7 @@ from sqlalchemy import engine_from_config, pool
 from throughline.db.base import Base
 from throughline.db.models import (  # noqa: F401 — register metadata
     DevPgvectorProof,
+    DiagnosticReport,
     Issue,
     IssueTransition,
     JiraConnection,
