@@ -18,17 +18,24 @@ If an issue contradicts `_docs/PLAN.md`, stop and report the contradiction. Do n
 
 ## Commands
 
-Requires Python 3.12+. Create and activate a virtualenv first (`python -m venv .venv`).
+Requires Python 3.12+. Create and activate a virtualenv first (`python -m venv .venv`) for host-side work.
 
 | Action | Command |
 |---|---|
-| Install dependencies | `pip install -e ".[dev]"` |
-| Run application | TBD (`docker compose up` once issue 2 lands) |
-| Run full test suite | `pytest` |
+| Install dependencies (host) | `pip install -e ".[dev]"` |
+| Start stack | `docker compose up --build` |
+| Stop stack | `docker compose down` |
+| API health | `http://localhost:8000/health` |
+| Prove API → DB/Redis | `docker compose exec api python -m throughline.connectivity` |
+| Run full test suite (container) | `docker compose run --rm api pytest` |
+| Run full test suite (host) | `pytest` |
 | Run individual tests | `pytest tests/test_app.py` (or any path/node id) |
+| Run API only (host) | `uvicorn throughline.api.app:app --reload` |
+| Run arq worker (host) | `arq throughline.workers.settings.WorkerSettings` |
 | Lint | TBD (ruff once CI lands) |
 | Format | TBD |
-| Build | TBD |
+
+Copy `.env.example` to `.env` for local overrides (optional; Compose has safe defaults). Never commit secrets.
 
 Update this section whenever foundation work adds real commands.
 

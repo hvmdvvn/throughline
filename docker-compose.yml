@@ -1,0 +1,83 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-throughline}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-throughline}
+      POSTGRES_DB: ${POSTGRES_DB:-throughline}
+    # Not published on the host by default (avoids local Postgres conflicts).
+    # Set POSTGRES_PORT and uncomment to reach db from the host:
+    # ports:
+    #   - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-throughline} -d ${POSTGRES_DB:-throughline}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+  redis:
+    image: redis:7-alpine
+    # Not published on the host by default. Uncomment to reach redis from the host:
+    # ports:
+    #   - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+  api:
+    build: .
+    command: >
+      uvicorn throughline.api.app:app
+      --host 0.0.0.0
+      --port 8000
+      --reload
+    volumes:
+      - .:/app
+    ports:
+      - "${API_PORT:-8000}:8000"
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://throughline:throughline@db:5432/throughline}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      APP_NAME: ${APP_NAME:-Throughline}
+      DEBUG: ${DEBUG:-true}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      # Proves the API container can reach Postgres and Redis over TCP.
+      test: ["CMD", "python", "-m", "throughline.connectivity"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  worker:
+    build: .
+    command: arq throughline.workers.settings.WorkerSettings
+    volumes:
+      - .:/app
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://throughline:throughline@db:5432/throughline}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      APP_NAME: ${APP_NAME:-Throughline}
+      DEBUG: ${DEBUG:-true}
+    depends_on:
+      redis:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:

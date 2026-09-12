@@ -20,7 +20,37 @@ FastAPI (Python 3.12), arq + Redis, Postgres 16 + pgvector, SQLAlchemy + Alembic
 
 Backlog and GitHub issues are aligned to `_docs/PLAN.md` (decision 2026-09-12).
 
-## Setup
+## Docker Compose (recommended)
+
+Starts API (`api`), arq `worker`, Postgres 16 (`db`), and Redis (`redis`).
+
+```bash
+# Optional: local overrides (file is gitignored)
+cp .env.example .env
+
+docker compose up --build
+```
+
+- API: http://localhost:8000/health
+- Prove API → Postgres/Redis from inside the API container:
+
+```bash
+docker compose exec api python -m throughline.connectivity
+```
+
+That command prints `ok` when both TCP checks succeed (same check used by the `api` service healthcheck).
+
+Stop with `Ctrl+C` or `docker compose down`.
+
+Postgres and Redis are reachable on the Compose network (`db`, `redis`) and are not published to the host by default (avoids clashing with a local Postgres). Uncomment the `ports` entries in `docker-compose.yml` if you need host access.
+
+### Tests inside the container
+
+```bash
+docker compose run --rm api pytest
+```
+
+## Local setup (without Docker)
 
 Requires Python 3.12+.
 
@@ -40,12 +70,35 @@ source .venv/bin/activate
 pip install -e ".[dev]"
 ```
 
-## Tests
+Run the API locally (expects Postgres/Redis only if you exercise connectivity):
+
+```bash
+uvicorn throughline.api.app:app --reload
+```
+
+Run the arq worker (requires Redis):
+
+```bash
+arq throughline.workers.settings.WorkerSettings
+```
+
+### Tests locally
 
 ```bash
 pytest
 ```
 
+## Environment variables
+
+Documented in [`.env.example`](.env.example). Do not commit real secrets; `.env` is gitignored.
+
+| Variable | Purpose |
+|---|---|
+| `DATABASE_URL` | Postgres URL (Compose default uses host `db`) |
+| `REDIS_URL` | Redis URL (Compose default uses host `redis`) |
+| `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | Postgres bootstrap |
+| `APP_NAME` / `DEBUG` | App settings |
+
 ## Application package
 
-The FastAPI app lives under `throughline/api/`. Settings load from environment variables (with safe defaults) via `throughline.config`.
+The FastAPI app lives under `throughline/api/`. Settings load from environment variables (with safe defaults) via `throughline.config`. The arq worker settings live under `throughline/workers/`.

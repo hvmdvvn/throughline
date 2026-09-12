@@ -14,6 +14,9 @@ class Settings(BaseSettings):
 
     app_name: str = "Throughline"
     debug: bool = False
+    # Local defaults match docker-compose / .env.example. Override via env in deploy.
+    database_url: str = "postgresql://throughline:throughline@localhost:5432/throughline"
+    redis_url: str = "redis://localhost:6379/0"
 
 
 def get_settings() -> Settings:
