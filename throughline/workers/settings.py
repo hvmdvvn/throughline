@@ -1,4 +1,4 @@
-"""Minimal arq worker settings. Real product jobs land in later Phase 0+ issues."""
+"""arq worker settings (foundation example job + Phase 0 Jira import)."""
 
 from __future__ import annotations
 
@@ -11,7 +11,10 @@ from throughline.config import settings
 from throughline.workers.jobs import (
     EXAMPLE_JOB_KEEP_RESULT_SECONDS,
     EXAMPLE_JOB_MAX_TRIES,
+    IMPORT_JOB_KEEP_RESULT_SECONDS,
+    IMPORT_JOB_MAX_TRIES,
     example_sleep_log,
+    import_jira_issue_history,
 )
 
 
@@ -27,6 +30,15 @@ example_sleep_log_job = func(
     name="example_sleep_log",
     keep_result=EXAMPLE_JOB_KEEP_RESULT_SECONDS,
     max_tries=EXAMPLE_JOB_MAX_TRIES,
+)
+
+# Resumable Jira issue history backfill (issue #13). Cursor lives in sync_state /
+# connection progress; arq max_tries covers transient worker crashes.
+import_jira_issue_history_job = func(
+    import_jira_issue_history,
+    name="import_jira_issue_history",
+    keep_result=IMPORT_JOB_KEEP_RESULT_SECONDS,
+    max_tries=IMPORT_JOB_MAX_TRIES,
 )
 
 
@@ -48,7 +60,11 @@ class WorkerSettings:
     ``GET /admin/jobs/{job_id}``.
     """
 
-    functions: ClassVar[list] = [ping, example_sleep_log_job]
+    functions: ClassVar[list] = [
+        ping,
+        example_sleep_log_job,
+        import_jira_issue_history_job,
+    ]
     redis_settings = RedisSettings.from_dsn(settings.redis_url)
 
     # Worker-wide defaults (per-job func() overrides win when set).

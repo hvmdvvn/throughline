@@ -13,11 +13,13 @@ from throughline.db.models import (  # noqa: F401 — register metadata
     JiraConnection,
     JiraFieldDefinition,
     JiraFieldMapping,
+    JiraIssue,
     JiraIssueType,
     JiraStatus,
     Membership,
     Org,
     Project,
+    SyncState,
     User,
 )
 from throughline.db.session import sqlalchemy_database_url

@@ -1,4 +1,4 @@
-"""Jira Cloud connector (OAuth 3LO + REST v3 client + discovery).
+"""Jira Cloud connector (OAuth 3LO + REST v3 client + discovery + import).
 
 REST API calls must use ``throughline.connectors.jira.client.JiraClient``.
 """
@@ -14,6 +14,7 @@ from throughline.connectors.jira.discovery import (
     resolve_mapped_field_id,
     run_discovery,
 )
+from throughline.connectors.jira.import_history import run_issue_history_import
 
 __all__ = [
     "JiraAPIError",
@@ -23,4 +24,5 @@ __all__ = [
     "build_client_from_tokens",
     "resolve_mapped_field_id",
     "run_discovery",
+    "run_issue_history_import",
 ]

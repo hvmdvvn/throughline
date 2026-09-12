@@ -3,6 +3,7 @@
 Identity / tenancy (issue #6): ``Org``, ``User``, ``Membership``.
 Jira OAuth connection (issue #10): ``JiraConnection`` — encrypted per-org tokens.
 Jira discovery (issue #12): ``Project``, issue types / statuses / fields, field mappings.
+History import (issue #13): ``JiraIssue``, ``SyncState``; import progress on ``JiraConnection``.
 ``DevPgvectorProof`` is a disposable foundation table used only to prove
 pgvector round-trips (issue #3). It is not a product embeddings table.
 """
@@ -164,6 +165,15 @@ class JiraConnection(TenantScopedMixin, Base):
         default=JiraConnectionStatus.DISCONNECTED,
     )
     status_detail: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    # Issue history import progress (issue #13) — mirrored from sync_state for ops.
+    import_status: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    import_imported_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    import_total_estimate: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    import_cursor: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    import_updated_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
 
 
 class JiraFieldConcept(enum.StrEnum):
@@ -286,6 +296,104 @@ class JiraFieldMapping(TenantScopedMixin, Base):
         nullable=False,
     )
     jira_field_id: Mapped[str] = mapped_column(String(128), nullable=False)
+
+
+class SyncRunStatus(enum.StrEnum):
+    """Lifecycle for a connector sync_state row (plan §3 / issue #13)."""
+
+    IDLE = "idle"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
+class SyncState(TenantScopedMixin, Base):
+    """Per-connector cursors, last-seen, and backoff state (plan §3).
+
+    Issue history import uses ``connector=jira`` / ``sync_key=issue_history``.
+    Cursor is the next ``startAt`` offset (stringified int) after the last
+    successfully committed page so an interrupted worker resumes mid-run.
+    """
+
+    __tablename__ = "sync_states"
+    __table_args__ = (
+        UniqueConstraint(
+            "org_id",
+            "connector",
+            "sync_key",
+            name="uq_sync_states_org_connector_key",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+    connector: Mapped[str] = mapped_column(String(64), nullable=False)
+    sync_key: Mapped[str] = mapped_column(String(128), nullable=False)
+    cursor: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    status: Mapped[SyncRunStatus] = mapped_column(
+        Enum(
+            SyncRunStatus,
+            name="sync_run_status",
+            values_callable=lambda enum_cls: [member.value for member in enum_cls],
+            native_enum=True,
+        ),
+        nullable=False,
+        default=SyncRunStatus.IDLE,
+    )
+    imported_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    total_estimate: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    detail: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    last_success_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    backoff_until: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
+
+class JiraIssue(TenantScopedMixin, Base):
+    """Imported Jira issue snapshot for Phase 0 history (plan §3 / issue #13).
+
+    Upserted on ``(org_id, issue_key)``. ``node_id`` links to requirement nodes
+    later; transitions/changelogs land in issue #14. Soft-delete only.
+    """
+
+    __tablename__ = "jira_issues"
+    __table_args__ = (
+        UniqueConstraint("org_id", "issue_key", name="uq_jira_issues_org_issue_key"),
+        UniqueConstraint("org_id", "external_id", name="uq_jira_issues_org_external_id"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+    external_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    issue_key: Mapped[str] = mapped_column(String(64), nullable=False)
+    project_key: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    summary: Mapped[str | None] = mapped_column(Text, nullable=True)
+    status_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    status_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    issue_type_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    issue_type_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    # Full search payload for later normalization (#15); not parsed in app logic.
+    raw_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+    jira_created_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    jira_updated_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    # Optional link to a requirement node (Phase 1); unused in Phase 0 import.
+    node_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
 
 
 class DevPgvectorProof(Base):

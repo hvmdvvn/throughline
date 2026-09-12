@@ -136,3 +136,22 @@ class JiraDiscoveryResultResponse(BaseModel):
     statuses: int
     fields: int
     mappings_seeded: int
+
+
+class JiraImportProgressResponse(BaseModel):
+    """Issue history import progress from the connection / sync_state (issue #13)."""
+
+    status: str
+    imported_count: int
+    total_estimate: int | None = None
+    cursor: str | None = None
+    updated_at: datetime | None = None
+    detail: str | None = None
+    sync_status: str | None = None
+
+
+class JiraImportEnqueueResponse(BaseModel):
+    """Enqueue ack for the resumable issue history import job."""
+
+    job_id: str
+    org_id: uuid.UUID
