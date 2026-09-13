@@ -12,6 +12,7 @@ AI-assisted requirements and delivery workflow for product teams. Connects Jira 
 | [`_docs/TASKS.md`](_docs/TASKS.md) | Historical backlog seed |
 | [`_docs/backlog-audit.md`](_docs/backlog-audit.md) | Backlog audit |
 | [`_docs/public-jira-corpus.md`](_docs/public-jira-corpus.md) | Public Jira corpus ToS (issue #16) |
+| [`_docs/signal-validation-study.md`](_docs/signal-validation-study.md) | Phase 0 signal validation go/no-go (issue #26) |
 
 GitHub issues are the live units of work: https://github.com/hvmdvvn/throughline/issues
 
@@ -147,9 +148,17 @@ Optional manual live fetch from ASF Jira (rate-limited; not for CI):
 
 ```bash
 python -m throughline.ingest.corpus --remote
+python -m throughline.ingest.corpus --remote --source jenkins_issues
 ```
 
-Terms verification and constraints: [`_docs/public-jira-corpus.md`](_docs/public-jira-corpus.md). The loader refuses to run if that note is missing or marks the source as `disallowed`.
+Signal validation study (issue #26) — fixture (CI) or live remote against ASF + Jenkins:
+
+```bash
+python -m throughline.analytics.signal_validation --fixture
+python -m throughline.analytics.signal_validation --remote --max-pages 1 --page-size 15 --max-issues 15
+```
+
+Findings: [`_docs/signal-validation-study.md`](_docs/signal-validation-study.md). Terms: [`_docs/public-jira-corpus.md`](_docs/public-jira-corpus.md). The loader refuses to run if that note is missing or marks the source as `disallowed`.
 
 ## Environment variables
 

@@ -338,12 +338,29 @@ def ensure_corpus_org(
     return org
 
 
-def _count_issues(db: Session) -> int:
-    return int(db.scalar(select(func.count()).select_from(JiraIssue)) or 0)
+def _count_issues(db: Session, org_id: uuid.UUID) -> int:
+    return int(
+        db.scalar(
+            select(func.count())
+            .select_from(JiraIssue)
+            .where(JiraIssue.org_id == org_id, JiraIssue.deleted_at.is_(None))
+        )
+        or 0
+    )
 
 
-def _count_transitions(db: Session) -> int:
-    return int(db.scalar(select(func.count()).select_from(JiraStatusTransition)) or 0)
+def _count_transitions(db: Session, org_id: uuid.UUID) -> int:
+    return int(
+        db.scalar(
+            select(func.count())
+            .select_from(JiraStatusTransition)
+            .where(
+                JiraStatusTransition.org_id == org_id,
+                JiraStatusTransition.deleted_at.is_(None),
+            )
+        )
+        or 0
+    )
 
 
 def load_corpus(
@@ -432,8 +449,8 @@ def load_corpus(
         normalize_transitions_for_org(db, org.id)
         db.commit()
 
-        issue_count = _count_issues(db)
-        transition_count = _count_transitions(db)
+        issue_count = _count_issues(db, org.id)
+        transition_count = _count_transitions(db, org.id)
         logger.info(
             "corpus load complete source=%s mode=%s issues=%s transitions=%s "
             "history_done=%s changelog_done=%s",

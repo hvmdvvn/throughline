@@ -78,12 +78,11 @@ _RESET_MODELS = (
 
 def _reset_org_study_data(db: Session, org_id) -> None:
     """Drop prior import/analytics rows so fixture and remote runs do not mix."""
-    with use_org(org_id):
-        for model in _RESET_MODELS:
-            # Must scope by org_id — Core delete() is not tenant-filtered.
-            db.execute(delete(model).where(model.org_id == org_id))
-        db.commit()
-        db.expire_all()
+    for model in _RESET_MODELS:
+        # Must scope by org_id — Core delete() is not tenant-filtered.
+        db.execute(delete(model).where(model.org_id == org_id))
+    db.commit()
+    db.expire_all()
 
 DEFAULT_STUDY_SOURCES: tuple[str, ...] = (SOURCE_ID, JENKINS_SOURCE_ID)
 DEFAULT_RANGE_START = date(2000, 1, 1)
