@@ -1,10 +1,5 @@
-import { PlaceholderPage } from "@/components/placeholder-page";
+import { DiagnosticReportView } from "@/components/diagnostic/diagnostic-report-view";
 
 export default function DiagnosticPage() {
-  return (
-    <PlaceholderPage
-      title="Diagnostic report"
-      description="Placeholder for issue #25. Navigation and authenticated FastAPI access only."
-    />
-  );
+  return <DiagnosticReportView />;
 }

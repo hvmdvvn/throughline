@@ -50,3 +50,120 @@ export type MeResponse = {
   membership_id: string;
   role: string;
 };
+
+/** Diagnostic report list row (``GET /reports`` — issue #23). */
+export type DiagnosticReportListItem = {
+  id: string;
+  org_id: string;
+  range_start: string;
+  range_end: string;
+  version: number;
+  status: string;
+  generated_at: string | null;
+  error_message: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type DiagnosticMetricEntry = {
+  value: number | null;
+  evidence_refs: string[];
+};
+
+/** Full report payload (``GET /reports/{id}``). */
+export type DiagnosticReportDetail = {
+  id: string;
+  org_id: string;
+  range_start: string;
+  range_end: string;
+  version: number;
+  status: string;
+  metrics: Record<string, DiagnosticMetricEntry>;
+  generation_detail: Record<string, unknown>;
+  generated_at: string | null;
+  error_message: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+/** Paginated evidence (``GET /reports/{id}/metrics/{metric_key}/evidence``). */
+export type DiagnosticMetricEvidencePage = {
+  report_id: string;
+  metric_key: string;
+  value: number | null;
+  items: string[];
+  page: number;
+  limit: number;
+  total: number;
+  has_more: boolean;
+};
+
+export class ApiError extends Error {
+  readonly status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
+
+async function parseJsonOrThrow<T>(res: Response): Promise<T> {
+  let body: unknown = null;
+  try {
+    body = await res.json();
+  } catch {
+    body = null;
+  }
+  if (!res.ok) {
+    const detail =
+      body &&
+      typeof body === "object" &&
+      "detail" in body &&
+      (body as { detail?: unknown }).detail != null
+        ? String((body as { detail: unknown }).detail)
+        : res.statusText || "Request failed";
+    throw new ApiError(res.status, detail);
+  }
+  return body as T;
+}
+
+export async function listReports(
+  token: string,
+  options: Omit<ApiFetchOptions, "token"> = {},
+): Promise<DiagnosticReportListItem[]> {
+  const res = await apiFetch("/reports", { ...options, token, cache: "no-store" });
+  return parseJsonOrThrow<DiagnosticReportListItem[]>(res);
+}
+
+export async function getReport(
+  token: string,
+  reportId: string,
+  options: Omit<ApiFetchOptions, "token"> = {},
+): Promise<DiagnosticReportDetail> {
+  const res = await apiFetch(`/reports/${encodeURIComponent(reportId)}`, {
+    ...options,
+    token,
+    cache: "no-store",
+  });
+  return parseJsonOrThrow<DiagnosticReportDetail>(res);
+}
+
+export async function getReportMetricEvidence(
+  token: string,
+  reportId: string,
+  metricKey: string,
+  page = 1,
+  limit = 50,
+  options: Omit<ApiFetchOptions, "token"> = {},
+): Promise<DiagnosticMetricEvidencePage> {
+  const params = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+  });
+  const path =
+    `/reports/${encodeURIComponent(reportId)}` +
+    `/metrics/${encodeURIComponent(metricKey)}/evidence?${params}`;
+  const res = await apiFetch(path, { ...options, token, cache: "no-store" });
+  return parseJsonOrThrow<DiagnosticMetricEvidencePage>(res);
+}

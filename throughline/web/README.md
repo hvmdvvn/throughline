@@ -19,7 +19,9 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:3000 — sign in, then use the shell nav (Diagnostic report, Pipeline, Needs attention, Settings). Placeholder pages probe `GET /me` on FastAPI with the Clerk session token.
+Open http://localhost:3000 — sign in, then use the shell nav (Diagnostic report, Pipeline, Needs attention, Settings).
+
+**Diagnostic report** (`/diagnostic`, issue #25) loads tenancy-scoped data from `GET /reports`, `GET /reports/{id}`, and evidence from `GET /reports/{id}/metrics/{metric_key}/evidence` using the Clerk session JWT. Other shell routes remain placeholders that probe `GET /me`.
 
 Unauthenticated access to shell routes is blocked by Clerk middleware (`src/proxy.ts`).
 
@@ -39,8 +41,9 @@ Ensure the API allows the web origin (default `CORS_ORIGINS=http://localhost:300
 ## Manual checks
 
 1. Unauthenticated visit to `/diagnostic` redirects to Clerk sign-in.
-2. After sign-in, shell nav links resolve to four placeholder routes.
-3. Placeholder shows FastAPI `/me` probe status when API + Clerk JWKS align.
+2. After sign-in, `/diagnostic` lists org reports (or an empty state) and shows rework, scope change, spec quality, and estimation accuracy when a report exists.
+3. Clicking a figure opens paginated evidence from the Report API.
+4. Remaining placeholder routes still probe FastAPI `/me` when API + Clerk JWKS align.
 
 ## Auth note
 

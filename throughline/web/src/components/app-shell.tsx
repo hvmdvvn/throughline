@@ -18,7 +18,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <AppNav />
         </div>
         <p className="px-4 pb-4 text-xs text-muted-foreground">
-          Shell placeholders — feature UIs land in later issues.
+          Phase 0 diagnostic · more surfaces in later issues.
         </p>
       </aside>
       <main className="flex-1 overflow-auto p-6 md:p-8">{children}</main>
