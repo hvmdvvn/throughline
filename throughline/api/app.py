@@ -5,6 +5,7 @@ from __future__ import annotations
 import uuid
 
 from fastapi import FastAPI, Request, Response
+from fastapi.middleware.cors import CORSMiddleware
 
 from throughline.api.routes import (
     admin,
@@ -19,6 +20,17 @@ from throughline.config import settings
 from throughline.tenancy import reset_current_org_id, set_current_org_id
 
 app = FastAPI(title=settings.app_name)
+
+# Allow the Next.js app (``throughline/web``) to call authenticated API routes from the browser.
+if settings.cors_origin_list:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_origin_list,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
 app.include_router(admin.router)
 app.include_router(auth_routes.router)
 app.include_router(reports.router)

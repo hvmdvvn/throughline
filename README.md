@@ -49,6 +49,20 @@ docker compose run --rm api alembic upgrade head
 
 Stop with `Ctrl+C` or `docker compose down`.
 
+### Web app (Next.js)
+
+The frontend lives at [`throughline/web/`](throughline/web/) (issue #24). Against a running API:
+
+```bash
+cd throughline/web
+cp .env.example .env.local
+# Set Clerk keys + NEXT_PUBLIC_API_URL=http://localhost:8000
+npm install
+npm run dev
+```
+
+Open http://localhost:3000. Unauthenticated users cannot open shell routes (`/diagnostic`, `/pipeline`, `/needs-attention`, `/settings`). The API allows the web origin via `CORS_ORIGINS` (default `http://localhost:3000`). Details: [`throughline/web/README.md`](throughline/web/README.md).
+
 If you previously ran Compose with plain `postgres:16`, wipe the volume once so the pgvector image can initialize cleanly: `docker compose down -v`.
 
 Postgres and Redis are reachable on the Compose network (`db`, `redis`) and are not published to the host by default (avoids clashing with a local Postgres). Uncomment the `ports` entries in `docker-compose.yml` if you need host access.
@@ -155,6 +169,7 @@ Documented in [`.env.example`](.env.example). Do not commit real secrets; `.env`
 | `CLERK_BOOTSTRAP_ORG_ID` | auth | Org UUID for first-login membership (single-dev bootstrap) |
 | `CLERK_BOOTSTRAP_ORG_NAME` | auth | Dev get-or-create org name when bootstrap id unset (default `Dev Org`) |
 | `CLERK_SECRET_KEY` | optional | Clerk Backend API key (not used for JWT verification) |
+| `CORS_ORIGINS` | web | Comma-separated browser origins allowed to call the API (default `http://localhost:3000`) |
 | `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` | optional stubs | LLM providers (later) |
 
 ### Authentication (Clerk)

@@ -39,6 +39,9 @@ Requires Python 3.12+. Create and activate a virtualenv first (`python -m venv .
 | Diagnostic report (arq) | `generate_diagnostic_report` job — args `org_id`, `range_start`, `range_end` (ISO dates) |
 | Diagnostic reports (auth) | `GET /reports` (list); `GET /reports/{id}` (metrics); `GET /reports/{id}/metrics/{metric_key}/evidence?page=&limit=` |
 | Public Jira corpus (local/dev) | `python -m throughline.ingest.corpus` (fixture subset); optional `--remote` (manual ASF fetch). ToS: `_docs/public-jira-corpus.md` |
+| Web app install | `cd throughline/web && npm install` |
+| Web app (local, against API) | `cd throughline/web && cp .env.example .env.local` (set Clerk keys + `NEXT_PUBLIC_API_URL=http://localhost:8000`) then `npm run dev` → http://localhost:3000 |
+| Web typecheck / smoke / build | `cd throughline/web && npm run typecheck && npm run test:smoke && npm run build` |
 | Lint | `ruff check .` |
 | Apply migrations (host, needs Postgres) | `alembic upgrade head` |
 | Migration drift check (host, needs Postgres) | `alembic check` |

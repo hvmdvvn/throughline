@@ -69,3 +69,38 @@ jobs:
 
       - name: Pytest
         run: pytest
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: throughline/web
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: throughline/web/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Smoke
+        run: npm run test:smoke
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build
+        env:
+          # Placeholder keys so `next build` can compile Clerk-wired routes in CI.
+          # Real local/dev uses keys from throughline/web/.env.local
+          # (see throughline/web/.env.example).
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_Y2xlcmsudGhyb3VnaGxpbmUtdGVzdC5jb20k
+          CLERK_SECRET_KEY: sk_test_throughline_ci_placeholder_secret_key_32
+          NEXT_PUBLIC_API_URL: http://localhost:8000
+        run: npm run build

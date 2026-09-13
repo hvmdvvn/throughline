@@ -58,6 +58,7 @@ services:
       CLERK_JWKS_STATIC_JSON: ${CLERK_JWKS_STATIC_JSON:-}
       CLERK_BOOTSTRAP_ORG_ID: ${CLERK_BOOTSTRAP_ORG_ID:-}
       CLERK_BOOTSTRAP_ORG_NAME: ${CLERK_BOOTSTRAP_ORG_NAME:-Dev Org}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
     depends_on:
       db:
         condition: service_healthy

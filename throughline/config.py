@@ -63,6 +63,10 @@ class Settings(BaseSettings):
     # Backend API key (optional; not used for JWT verification).
     clerk_secret_key: str | None = Field(default=None)
 
+    # Browser CORS origins for the Next.js app (issue #24). Comma-separated.
+    # Default allows local ``throughline/web`` (``next dev`` on port 3000).
+    cors_origins: str = "http://localhost:3000"
+
     # Atlassian OAuth 2.0 (3LO) for Jira Cloud (issue #10).
     # Register an app at https://developer.atlassian.com/console/myapps/
     # Callback URL must match ATLASSIAN_REDIRECT_URI exactly, e.g.
@@ -121,6 +125,11 @@ class Settings(BaseSettings):
     @property
     def is_production(self) -> bool:
         return self.environment == Environment.PRODUCTION
+
+    @property
+    def cors_origin_list(self) -> list[str]:
+        """Parsed ``CORS_ORIGINS`` (empty entries dropped)."""
+        return [part.strip() for part in self.cors_origins.split(",") if part.strip()]
 
 
 def get_settings() -> Settings:
