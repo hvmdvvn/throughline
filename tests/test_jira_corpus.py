@@ -116,6 +116,10 @@ def test_tos_status_parses_allowed_markers():
     assert status.status == "allowed"
     assert status.verified_date == "2026-09-12"
     ensure_tos_allowed(root=REPO_ROOT)
+    jenkins = load_tos_status(root=REPO_ROOT, source="jenkins_issues")
+    assert jenkins.status == "allowed"
+    assert jenkins.verified_date == "2026-09-13"
+    ensure_tos_allowed(root=REPO_ROOT, source="jenkins_issues")
 
 
 def test_tos_missing_doc_refuses(tmp_path: Path):
@@ -129,9 +133,11 @@ def test_tos_disallowed_refuses(tmp_path: Path):
     (docs / "public-jira-corpus.md").write_text(
         "\n".join(
             [
+                "```text",
                 "corpus-tos-source: apache_issues",
                 "corpus-tos-verified-date: 2026-09-12",
                 "corpus-tos-status: disallowed",
+                "```",
                 "",
             ]
         ),
@@ -165,9 +171,11 @@ def test_loader_refuses_when_tos_disallowed(db_session, tmp_path: Path):
     (docs / "public-jira-corpus.md").write_text(
         "\n".join(
             [
+                "```text",
                 "corpus-tos-source: apache_issues",
                 "corpus-tos-verified-date: 2099-01-01",
                 "corpus-tos-status: disallowed",
+                "```",
                 "",
             ]
         ),
@@ -201,7 +209,8 @@ def test_cli_prints_ok_on_fixture_load(capsys):
         code = corpus_main([])
     captured = capsys.readouterr()
     assert code == 0
-    assert "ok mode=fixture" in captured.out
+    assert "ok source=" in captured.out
+    assert "mode=fixture" in captured.out
     assert "issues=2" in captured.out
     assert "transitions=5" in captured.out
 

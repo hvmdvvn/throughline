@@ -1,4 +1,4 @@
-"""CLI: ``python -m throughline.ingest.corpus`` (issue #16)."""
+"""CLI: ``python -m throughline.ingest.corpus`` (issues #16 / #26)."""
 
 from __future__ import annotations
 
@@ -12,9 +12,10 @@ from throughline.ingest.corpus.loader import (
     DEFAULT_REMOTE_MAX_PAGES,
     DEFAULT_REMOTE_MIN_DELAY_SECONDS,
     DEFAULT_REMOTE_PAGE_SIZE,
+    SOURCE_CONFIGS,
     load_corpus,
 )
-from throughline.ingest.corpus.tos import CorpusTosError
+from throughline.ingest.corpus.tos import SOURCE_ID, CorpusTosError
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -22,7 +23,7 @@ def main(argv: list[str] | None = None) -> int:
         description=(
             "Load the public Jira test corpus into the local DB. "
             "Requires ToS verification in _docs/public-jira-corpus.md. "
-            "Default: fixture subset (CI). Use --remote for optional live ASF fetch."
+            "Default: fixture subset (CI). Use --remote for optional live fetch."
         )
     )
     parser.add_argument(
@@ -33,12 +34,18 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--remote",
         action="store_true",
-        help="Optional manual fetch from ASF Jira (rate-limited; not for CI)",
+        help="Optional manual fetch from a ToS-verified public Jira (not for CI)",
+    )
+    parser.add_argument(
+        "--source",
+        default=SOURCE_ID,
+        choices=sorted(SOURCE_CONFIGS),
+        help=f"Public source id for --remote (default: {SOURCE_ID})",
     )
     parser.add_argument(
         "--jql",
         default=None,
-        help=f"Remote JQL (default: {DEFAULT_REMOTE_JQL!r})",
+        help=f"Remote JQL (default depends on --source; ASF default: {DEFAULT_REMOTE_JQL!r})",
     )
     parser.add_argument(
         "--page-size",
@@ -61,8 +68,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--min-delay",
         type=float,
-        default=DEFAULT_REMOTE_MIN_DELAY_SECONDS,
-        help="Minimum seconds between remote HTTP calls",
+        default=None,
+        help=(
+            "Minimum seconds between remote HTTP calls "
+            f"(default: per-source; ASF {DEFAULT_REMOTE_MIN_DELAY_SECONDS})"
+        ),
     )
     args = parser.parse_args(argv)
 
@@ -73,6 +83,7 @@ def main(argv: list[str] | None = None) -> int:
             result = load_corpus(
                 db,
                 mode=load_mode,
+                source=args.source,
                 jql=args.jql,
                 page_size=args.page_size,
                 max_pages=args.max_pages,
@@ -87,7 +98,7 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     print(
-        f"ok mode={result.mode} org_id={result.org_id} "
+        f"ok source={result.source} mode={result.mode} org_id={result.org_id} "
         f"issues={result.issue_count} transitions={result.transition_count} "
         f"tos_verified={result.tos_verified_date}"
     )

@@ -1,0 +1,84 @@
+{
+  "self": "https://issues.jenkins.io/rest/api/2/issue/JENKINS-3/changelog?startAt=0&maxResults=100",
+  "maxResults": 100,
+  "startAt": 0,
+  "total": 5,
+  "isLast": true,
+  "values": [
+    {
+      "id": "83001",
+      "author": {"name": "dev", "displayName": "Dev User"},
+      "created": "2023-03-02T10:00:00.000+0000",
+      "items": [
+        {
+          "field": "status",
+          "fieldtype": "jira",
+          "from": "1",
+          "fromString": "Open",
+          "to": "3",
+          "toString": "In Progress"
+        }
+      ]
+    },
+    {
+      "id": "83002",
+      "author": {"name": "dev", "displayName": "Dev User"},
+      "created": "2023-03-04T12:00:00.000+0000",
+      "items": [
+        {
+          "field": "status",
+          "fieldtype": "jira",
+          "from": "3",
+          "fromString": "In Progress",
+          "to": "5",
+          "toString": "Resolved"
+        }
+      ]
+    },
+    {
+      "id": "83003",
+      "author": {"name": "qa", "displayName": "QA User"},
+      "created": "2023-03-05T09:00:00.000+0000",
+      "items": [
+        {
+          "field": "status",
+          "fieldtype": "jira",
+          "from": "5",
+          "fromString": "Resolved",
+          "to": "3",
+          "toString": "In Progress"
+        }
+      ]
+    },
+    {
+      "id": "83004",
+      "author": {"name": "dev", "displayName": "Dev User"},
+      "created": "2023-03-08T11:00:00.000+0000",
+      "items": [
+        {
+          "field": "status",
+          "fieldtype": "jira",
+          "from": "3",
+          "fromString": "In Progress",
+          "to": "5",
+          "toString": "Resolved"
+        }
+      ]
+    },
+    {
+      "id": "83005",
+      "author": {"name": "qa", "displayName": "QA User"},
+      "created": "2023-03-09T10:00:00.000+0000",
+      "items": [
+        {
+          "field": "description",
+          "fieldtype": "jira",
+          "from": null,
+          "fromString": "old",
+          "to": null,
+          "toString": "Another short description used only for length-bucket variance in fixtures."
+        }
+      ]
+    }
+  ]
+}

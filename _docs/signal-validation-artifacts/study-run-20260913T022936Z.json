@@ -1,0 +1,873 @@
+{
+  "command": [
+    "python",
+    "-m",
+    "throughline.analytics.signal_validation",
+    "--sources",
+    "apache_issues",
+    "jenkins_issues",
+    "--mode",
+    "remote",
+    "--page-size",
+    "15",
+    "--max-pages",
+    "2",
+    "--max-issues",
+    "30"
+  ],
+  "comparison": {
+    "cross_source_corr_reopen_rate_vs_short_desc_rate": null,
+    "metric_spread": {
+      "cycle_time.completed_issue_count": {
+        "max": 0,
+        "min": 0,
+        "spread": 0.0
+      },
+      "estimation_accuracy.accurate_count": {
+        "max": 0,
+        "min": 0,
+        "spread": 0.0
+      },
+      "estimation_accuracy.coverage": {
+        "max": 0.3333333333333333,
+        "min": 0.0,
+        "spread": 0.3333333333333333
+      },
+      "estimation_accuracy.issue_count": {
+        "max": 30,
+        "min": 30,
+        "spread": 0.0
+      },
+      "estimation_accuracy.over_count": {
+        "max": 0,
+        "min": 0,
+        "spread": 0.0
+      },
+      "estimation_accuracy.under_count": {
+        "max": 0,
+        "min": 0,
+        "spread": 0.0
+      },
+      "reopen.event_count": {
+        "max": 0,
+        "min": 0,
+        "spread": 0.0
+      },
+      "scope_change.late_child_count": {
+        "max": 0,
+        "min": 0,
+        "spread": 0.0
+      },
+      "scope_change.spec_change_count": {
+        "max": 0,
+        "min": 0,
+        "spread": 0.0
+      },
+      "spec_quality.ac_missing_or_empty_count": {
+        "max": 0,
+        "min": 0,
+        "spread": 0.0
+      },
+      "spec_quality.issue_count": {
+        "max": 30,
+        "min": 30,
+        "spread": 0.0
+      }
+    },
+    "notes": [
+      "Issue-level correlations are within-source (see each run.derived).",
+      "Cross-source correlation uses n=number of sources (typically 2) \u2014 directionally informative only, not statistically powered."
+    ],
+    "sources": {
+      "apache_issues": {
+        "derived": {
+          "ac_mapping_unavailable_count": 30,
+          "ac_missing_or_empty_count": 0,
+          "completed_with_cycle_time": 0,
+          "corr_reopen_count_vs_ac_missing": null,
+          "corr_reopen_count_vs_cycle_time_seconds": null,
+          "corr_reopen_count_vs_short_description": null,
+          "issue_count": 30,
+          "issues_with_reopen": 0,
+          "mean_reopens_when_desc_long": 0.0,
+          "mean_reopens_when_desc_short": 0.0,
+          "reopen_rate": 0.0,
+          "short_or_empty_description_count": 5,
+          "short_or_empty_description_rate": 0.16666666666666666
+        },
+        "issue_count": 30,
+        "metrics": {
+          "cycle_time.completed_issue_count": 0,
+          "cycle_time.median_seconds": null,
+          "estimation_accuracy.accurate_count": 0,
+          "estimation_accuracy.coverage": 0.3333333333333333,
+          "estimation_accuracy.issue_count": 30,
+          "estimation_accuracy.over_count": 0,
+          "estimation_accuracy.under_count": 0,
+          "reopen.event_count": 0,
+          "scope_change.late_child_count": 0,
+          "scope_change.spec_change_count": 0,
+          "spec_quality.ac_missing_or_empty_count": 0,
+          "spec_quality.issue_count": 30
+        },
+        "report_status": "success"
+      },
+      "jenkins_issues": {
+        "derived": {
+          "ac_mapping_unavailable_count": 30,
+          "ac_missing_or_empty_count": 0,
+          "completed_with_cycle_time": 0,
+          "corr_reopen_count_vs_ac_missing": null,
+          "corr_reopen_count_vs_cycle_time_seconds": null,
+          "corr_reopen_count_vs_short_description": null,
+          "issue_count": 30,
+          "issues_with_reopen": 0,
+          "mean_reopens_when_desc_long": 0.0,
+          "mean_reopens_when_desc_short": 0.0,
+          "reopen_rate": 0.0,
+          "short_or_empty_description_count": 5,
+          "short_or_empty_description_rate": 0.16666666666666666
+        },
+        "issue_count": 60,
+        "metrics": {
+          "cycle_time.completed_issue_count": 0,
+          "cycle_time.median_seconds": null,
+          "estimation_accuracy.accurate_count": 0,
+          "estimation_accuracy.coverage": 0.0,
+          "estimation_accuracy.issue_count": 30,
+          "estimation_accuracy.over_count": 0,
+          "estimation_accuracy.under_count": 0,
+          "reopen.event_count": 0,
+          "scope_change.late_child_count": 0,
+          "scope_change.spec_change_count": 0,
+          "spec_quality.ac_missing_or_empty_count": 0,
+          "spec_quality.issue_count": 30
+        },
+        "report_status": "success"
+      }
+    }
+  },
+  "generated_at": "2026-09-13T02:29:36.536872+00:00",
+  "issue": 26,
+  "runs": [
+    {
+      "derived": {
+        "ac_mapping_unavailable_count": 30,
+        "ac_missing_or_empty_count": 0,
+        "completed_with_cycle_time": 0,
+        "corr_reopen_count_vs_ac_missing": null,
+        "corr_reopen_count_vs_cycle_time_seconds": null,
+        "corr_reopen_count_vs_short_description": null,
+        "issue_count": 30,
+        "issues_with_reopen": 0,
+        "mean_reopens_when_desc_long": 0.0,
+        "mean_reopens_when_desc_short": 0.0,
+        "reopen_rate": 0.0,
+        "short_or_empty_description_count": 5,
+        "short_or_empty_description_rate": 0.16666666666666666
+      },
+      "generation_detail": {
+        "cycle_time": {
+          "compute_result": 0,
+          "metric_keys": [
+            "cycle_time.completed_issue_count",
+            "cycle_time.median_seconds"
+          ],
+          "ok": true
+        },
+        "estimation_accuracy": {
+          "compute_result": [
+            30,
+            9
+          ],
+          "metric_keys": [
+            "estimation_accuracy.accurate_count",
+            "estimation_accuracy.coverage",
+            "estimation_accuracy.issue_count",
+            "estimation_accuracy.over_count",
+            "estimation_accuracy.under_count"
+          ],
+          "ok": true
+        },
+        "reopen": {
+          "compute_result": [
+            0,
+            0
+          ],
+          "metric_keys": [
+            "reopen.event_count"
+          ],
+          "ok": true
+        },
+        "scope_change": {
+          "compute_result": [
+            0,
+            0,
+            0
+          ],
+          "metric_keys": [
+            "scope_change.late_child_count",
+            "scope_change.spec_change_count"
+          ],
+          "ok": true
+        },
+        "spec_quality": {
+          "compute_result": [
+            30,
+            18
+          ],
+          "metric_keys": [
+            "spec_quality.ac_missing_or_empty_count",
+            "spec_quality.issue_count"
+          ],
+          "ok": true
+        }
+      },
+      "issue_count": 30,
+      "metrics": {
+        "cycle_time.completed_issue_count": {
+          "evidence_refs": [],
+          "value": 0
+        },
+        "cycle_time.median_seconds": {
+          "evidence_refs": [],
+          "value": null
+        },
+        "estimation_accuracy.accurate_count": {
+          "evidence_refs": [
+            "issue:KAFKA-1/estimation-accuracy",
+            "issue:KAFKA-10/estimation-accuracy",
+            "issue:KAFKA-11/estimation-accuracy",
+            "issue:KAFKA-12/estimation-accuracy",
+            "issue:KAFKA-13/estimation-accuracy",
+            "issue:KAFKA-14/estimation-accuracy",
+            "issue:KAFKA-15/estimation-accuracy",
+            "issue:KAFKA-16/estimation-accuracy",
+            "issue:KAFKA-17/estimation-accuracy",
+            "issue:KAFKA-18/estimation-accuracy",
+            "issue:KAFKA-19/estimation-accuracy",
+            "issue:KAFKA-2/estimation-accuracy",
+            "issue:KAFKA-20/estimation-accuracy",
+            "issue:KAFKA-21/estimation-accuracy",
+            "issue:KAFKA-22/estimation-accuracy",
+            "issue:KAFKA-23/estimation-accuracy",
+            "issue:KAFKA-24/estimation-accuracy",
+            "issue:KAFKA-25/estimation-accuracy",
+            "issue:KAFKA-26/estimation-accuracy",
+            "issue:KAFKA-27/estimation-accuracy",
+            "issue:KAFKA-28/estimation-accuracy",
+            "issue:KAFKA-29/estimation-accuracy",
+            "issue:KAFKA-3/estimation-accuracy",
+            "issue:KAFKA-30/estimation-accuracy",
+            "issue:KAFKA-4/estimation-accuracy",
+            "issue:KAFKA-5/estimation-accuracy",
+            "issue:KAFKA-6/estimation-accuracy",
+            "issue:KAFKA-7/estimation-accuracy",
+            "issue:KAFKA-8/estimation-accuracy",
+            "issue:KAFKA-9/estimation-accuracy"
+          ],
+          "value": 0
+        },
+        "estimation_accuracy.coverage": {
+          "evidence_refs": [
+            "issue:KAFKA-1/estimation-accuracy",
+            "issue:KAFKA-10/estimation-accuracy",
+            "issue:KAFKA-11/estimation-accuracy",
+            "issue:KAFKA-12/estimation-accuracy",
+            "issue:KAFKA-13/estimation-accuracy",
+            "issue:KAFKA-14/estimation-accuracy",
+            "issue:KAFKA-15/estimation-accuracy",
+            "issue:KAFKA-16/estimation-accuracy",
+            "issue:KAFKA-17/estimation-accuracy",
+            "issue:KAFKA-18/estimation-accuracy",
+            "issue:KAFKA-19/estimation-accuracy",
+            "issue:KAFKA-2/estimation-accuracy",
+            "issue:KAFKA-20/estimation-accuracy",
+            "issue:KAFKA-21/estimation-accuracy",
+            "issue:KAFKA-22/estimation-accuracy",
+            "issue:KAFKA-23/estimation-accuracy",
+            "issue:KAFKA-24/estimation-accuracy",
+            "issue:KAFKA-25/estimation-accuracy",
+            "issue:KAFKA-26/estimation-accuracy",
+            "issue:KAFKA-27/estimation-accuracy",
+            "issue:KAFKA-28/estimation-accuracy",
+            "issue:KAFKA-29/estimation-accuracy",
+            "issue:KAFKA-3/estimation-accuracy",
+            "issue:KAFKA-30/estimation-accuracy",
+            "issue:KAFKA-4/estimation-accuracy",
+            "issue:KAFKA-5/estimation-accuracy",
+            "issue:KAFKA-6/estimation-accuracy",
+            "issue:KAFKA-7/estimation-accuracy",
+            "issue:KAFKA-8/estimation-accuracy",
+            "issue:KAFKA-9/estimation-accuracy"
+          ],
+          "value": 0.3333333333333333
+        },
+        "estimation_accuracy.issue_count": {
+          "evidence_refs": [
+            "issue:KAFKA-1/estimation-accuracy",
+            "issue:KAFKA-10/estimation-accuracy",
+            "issue:KAFKA-11/estimation-accuracy",
+            "issue:KAFKA-12/estimation-accuracy",
+            "issue:KAFKA-13/estimation-accuracy",
+            "issue:KAFKA-14/estimation-accuracy",
+            "issue:KAFKA-15/estimation-accuracy",
+            "issue:KAFKA-16/estimation-accuracy",
+            "issue:KAFKA-17/estimation-accuracy",
+            "issue:KAFKA-18/estimation-accuracy",
+            "issue:KAFKA-19/estimation-accuracy",
+            "issue:KAFKA-2/estimation-accuracy",
+            "issue:KAFKA-20/estimation-accuracy",
+            "issue:KAFKA-21/estimation-accuracy",
+            "issue:KAFKA-22/estimation-accuracy",
+            "issue:KAFKA-23/estimation-accuracy",
+            "issue:KAFKA-24/estimation-accuracy",
+            "issue:KAFKA-25/estimation-accuracy",
+            "issue:KAFKA-26/estimation-accuracy",
+            "issue:KAFKA-27/estimation-accuracy",
+            "issue:KAFKA-28/estimation-accuracy",
+            "issue:KAFKA-29/estimation-accuracy",
+            "issue:KAFKA-3/estimation-accuracy",
+            "issue:KAFKA-30/estimation-accuracy",
+            "issue:KAFKA-4/estimation-accuracy",
+            "issue:KAFKA-5/estimation-accuracy",
+            "issue:KAFKA-6/estimation-accuracy",
+            "issue:KAFKA-7/estimation-accuracy",
+            "issue:KAFKA-8/estimation-accuracy",
+            "issue:KAFKA-9/estimation-accuracy"
+          ],
+          "value": 30
+        },
+        "estimation_accuracy.over_count": {
+          "evidence_refs": [
+            "issue:KAFKA-1/estimation-accuracy",
+            "issue:KAFKA-10/estimation-accuracy",
+            "issue:KAFKA-11/estimation-accuracy",
+            "issue:KAFKA-12/estimation-accuracy",
+            "issue:KAFKA-13/estimation-accuracy",
+            "issue:KAFKA-14/estimation-accuracy",
+            "issue:KAFKA-15/estimation-accuracy",
+            "issue:KAFKA-16/estimation-accuracy",
+            "issue:KAFKA-17/estimation-accuracy",
+            "issue:KAFKA-18/estimation-accuracy",
+            "issue:KAFKA-19/estimation-accuracy",
+            "issue:KAFKA-2/estimation-accuracy",
+            "issue:KAFKA-20/estimation-accuracy",
+            "issue:KAFKA-21/estimation-accuracy",
+            "issue:KAFKA-22/estimation-accuracy",
+            "issue:KAFKA-23/estimation-accuracy",
+            "issue:KAFKA-24/estimation-accuracy",
+            "issue:KAFKA-25/estimation-accuracy",
+            "issue:KAFKA-26/estimation-accuracy",
+            "issue:KAFKA-27/estimation-accuracy",
+            "issue:KAFKA-28/estimation-accuracy",
+            "issue:KAFKA-29/estimation-accuracy",
+            "issue:KAFKA-3/estimation-accuracy",
+            "issue:KAFKA-30/estimation-accuracy",
+            "issue:KAFKA-4/estimation-accuracy",
+            "issue:KAFKA-5/estimation-accuracy",
+            "issue:KAFKA-6/estimation-accuracy",
+            "issue:KAFKA-7/estimation-accuracy",
+            "issue:KAFKA-8/estimation-accuracy",
+            "issue:KAFKA-9/estimation-accuracy"
+          ],
+          "value": 0
+        },
+        "estimation_accuracy.under_count": {
+          "evidence_refs": [
+            "issue:KAFKA-1/estimation-accuracy",
+            "issue:KAFKA-10/estimation-accuracy",
+            "issue:KAFKA-11/estimation-accuracy",
+            "issue:KAFKA-12/estimation-accuracy",
+            "issue:KAFKA-13/estimation-accuracy",
+            "issue:KAFKA-14/estimation-accuracy",
+            "issue:KAFKA-15/estimation-accuracy",
+            "issue:KAFKA-16/estimation-accuracy",
+            "issue:KAFKA-17/estimation-accuracy",
+            "issue:KAFKA-18/estimation-accuracy",
+            "issue:KAFKA-19/estimation-accuracy",
+            "issue:KAFKA-2/estimation-accuracy",
+            "issue:KAFKA-20/estimation-accuracy",
+            "issue:KAFKA-21/estimation-accuracy",
+            "issue:KAFKA-22/estimation-accuracy",
+            "issue:KAFKA-23/estimation-accuracy",
+            "issue:KAFKA-24/estimation-accuracy",
+            "issue:KAFKA-25/estimation-accuracy",
+            "issue:KAFKA-26/estimation-accuracy",
+            "issue:KAFKA-27/estimation-accuracy",
+            "issue:KAFKA-28/estimation-accuracy",
+            "issue:KAFKA-29/estimation-accuracy",
+            "issue:KAFKA-3/estimation-accuracy",
+            "issue:KAFKA-30/estimation-accuracy",
+            "issue:KAFKA-4/estimation-accuracy",
+            "issue:KAFKA-5/estimation-accuracy",
+            "issue:KAFKA-6/estimation-accuracy",
+            "issue:KAFKA-7/estimation-accuracy",
+            "issue:KAFKA-8/estimation-accuracy",
+            "issue:KAFKA-9/estimation-accuracy"
+          ],
+          "value": 0
+        },
+        "reopen.event_count": {
+          "evidence_refs": [],
+          "value": 0
+        },
+        "scope_change.late_child_count": {
+          "evidence_refs": [],
+          "value": 0
+        },
+        "scope_change.spec_change_count": {
+          "evidence_refs": [],
+          "value": 0
+        },
+        "spec_quality.ac_missing_or_empty_count": {
+          "evidence_refs": [
+            "issue:KAFKA-1/spec-quality-indicators",
+            "issue:KAFKA-10/spec-quality-indicators",
+            "issue:KAFKA-11/spec-quality-indicators",
+            "issue:KAFKA-12/spec-quality-indicators",
+            "issue:KAFKA-13/spec-quality-indicators",
+            "issue:KAFKA-14/spec-quality-indicators",
+            "issue:KAFKA-15/spec-quality-indicators",
+            "issue:KAFKA-16/spec-quality-indicators",
+            "issue:KAFKA-17/spec-quality-indicators",
+            "issue:KAFKA-18/spec-quality-indicators",
+            "issue:KAFKA-19/spec-quality-indicators",
+            "issue:KAFKA-2/spec-quality-indicators",
+            "issue:KAFKA-20/spec-quality-indicators",
+            "issue:KAFKA-21/spec-quality-indicators",
+            "issue:KAFKA-22/spec-quality-indicators",
+            "issue:KAFKA-23/spec-quality-indicators",
+            "issue:KAFKA-24/spec-quality-indicators",
+            "issue:KAFKA-25/spec-quality-indicators",
+            "issue:KAFKA-26/spec-quality-indicators",
+            "issue:KAFKA-27/spec-quality-indicators",
+            "issue:KAFKA-28/spec-quality-indicators",
+            "issue:KAFKA-29/spec-quality-indicators",
+            "issue:KAFKA-3/spec-quality-indicators",
+            "issue:KAFKA-30/spec-quality-indicators",
+            "issue:KAFKA-4/spec-quality-indicators",
+            "issue:KAFKA-5/spec-quality-indicators",
+            "issue:KAFKA-6/spec-quality-indicators",
+            "issue:KAFKA-7/spec-quality-indicators",
+            "issue:KAFKA-8/spec-quality-indicators",
+            "issue:KAFKA-9/spec-quality-indicators"
+          ],
+          "value": 0
+        },
+        "spec_quality.issue_count": {
+          "evidence_refs": [
+            "issue:KAFKA-1/spec-quality-indicators",
+            "issue:KAFKA-10/spec-quality-indicators",
+            "issue:KAFKA-11/spec-quality-indicators",
+            "issue:KAFKA-12/spec-quality-indicators",
+            "issue:KAFKA-13/spec-quality-indicators",
+            "issue:KAFKA-14/spec-quality-indicators",
+            "issue:KAFKA-15/spec-quality-indicators",
+            "issue:KAFKA-16/spec-quality-indicators",
+            "issue:KAFKA-17/spec-quality-indicators",
+            "issue:KAFKA-18/spec-quality-indicators",
+            "issue:KAFKA-19/spec-quality-indicators",
+            "issue:KAFKA-2/spec-quality-indicators",
+            "issue:KAFKA-20/spec-quality-indicators",
+            "issue:KAFKA-21/spec-quality-indicators",
+            "issue:KAFKA-22/spec-quality-indicators",
+            "issue:KAFKA-23/spec-quality-indicators",
+            "issue:KAFKA-24/spec-quality-indicators",
+            "issue:KAFKA-25/spec-quality-indicators",
+            "issue:KAFKA-26/spec-quality-indicators",
+            "issue:KAFKA-27/spec-quality-indicators",
+            "issue:KAFKA-28/spec-quality-indicators",
+            "issue:KAFKA-29/spec-quality-indicators",
+            "issue:KAFKA-3/spec-quality-indicators",
+            "issue:KAFKA-30/spec-quality-indicators",
+            "issue:KAFKA-4/spec-quality-indicators",
+            "issue:KAFKA-5/spec-quality-indicators",
+            "issue:KAFKA-6/spec-quality-indicators",
+            "issue:KAFKA-7/spec-quality-indicators",
+            "issue:KAFKA-8/spec-quality-indicators",
+            "issue:KAFKA-9/spec-quality-indicators"
+          ],
+          "value": 30
+        }
+      },
+      "mode": "remote",
+      "org_id": "25941eb2-5354-4528-96f0-b22bef8cef24",
+      "org_name": "Public Jira Corpus",
+      "range_end": "2026-12-31",
+      "range_start": "2000-01-01",
+      "report_id": "d0346faa-40b9-4851-83eb-f495200d8769",
+      "report_status": "success",
+      "report_version": 1,
+      "source": "apache_issues",
+      "tos_verified_date": "2026-09-12",
+      "transition_count": 9
+    },
+    {
+      "derived": {
+        "ac_mapping_unavailable_count": 30,
+        "ac_missing_or_empty_count": 0,
+        "completed_with_cycle_time": 0,
+        "corr_reopen_count_vs_ac_missing": null,
+        "corr_reopen_count_vs_cycle_time_seconds": null,
+        "corr_reopen_count_vs_short_description": null,
+        "issue_count": 30,
+        "issues_with_reopen": 0,
+        "mean_reopens_when_desc_long": 0.0,
+        "mean_reopens_when_desc_short": 0.0,
+        "reopen_rate": 0.0,
+        "short_or_empty_description_count": 5,
+        "short_or_empty_description_rate": 0.16666666666666666
+      },
+      "generation_detail": {
+        "cycle_time": {
+          "compute_result": 0,
+          "metric_keys": [
+            "cycle_time.completed_issue_count",
+            "cycle_time.median_seconds"
+          ],
+          "ok": true
+        },
+        "estimation_accuracy": {
+          "compute_result": [
+            30,
+            10
+          ],
+          "metric_keys": [
+            "estimation_accuracy.accurate_count",
+            "estimation_accuracy.coverage",
+            "estimation_accuracy.issue_count",
+            "estimation_accuracy.over_count",
+            "estimation_accuracy.under_count"
+          ],
+          "ok": true
+        },
+        "reopen": {
+          "compute_result": [
+            0,
+            0
+          ],
+          "metric_keys": [
+            "reopen.event_count"
+          ],
+          "ok": true
+        },
+        "scope_change": {
+          "compute_result": [
+            0,
+            0,
+            0
+          ],
+          "metric_keys": [
+            "scope_change.late_child_count",
+            "scope_change.spec_change_count"
+          ],
+          "ok": true
+        },
+        "spec_quality": {
+          "compute_result": [
+            30,
+            20
+          ],
+          "metric_keys": [
+            "spec_quality.ac_missing_or_empty_count",
+            "spec_quality.issue_count"
+          ],
+          "ok": true
+        }
+      },
+      "issue_count": 60,
+      "metrics": {
+        "cycle_time.completed_issue_count": {
+          "evidence_refs": [],
+          "value": 0
+        },
+        "cycle_time.median_seconds": {
+          "evidence_refs": [],
+          "value": null
+        },
+        "estimation_accuracy.accurate_count": {
+          "evidence_refs": [
+            "issue:JENKINS-180/estimation-accuracy",
+            "issue:JENKINS-225/estimation-accuracy",
+            "issue:JENKINS-229/estimation-accuracy",
+            "issue:JENKINS-244/estimation-accuracy",
+            "issue:JENKINS-294/estimation-accuracy",
+            "issue:JENKINS-330/estimation-accuracy",
+            "issue:JENKINS-361/estimation-accuracy",
+            "issue:JENKINS-408/estimation-accuracy",
+            "issue:JENKINS-416/estimation-accuracy",
+            "issue:JENKINS-417/estimation-accuracy",
+            "issue:JENKINS-421/estimation-accuracy",
+            "issue:JENKINS-422/estimation-accuracy",
+            "issue:JENKINS-423/estimation-accuracy",
+            "issue:JENKINS-424/estimation-accuracy",
+            "issue:JENKINS-426/estimation-accuracy",
+            "issue:JENKINS-427/estimation-accuracy",
+            "issue:JENKINS-429/estimation-accuracy",
+            "issue:JENKINS-439/estimation-accuracy",
+            "issue:JENKINS-443/estimation-accuracy",
+            "issue:JENKINS-444/estimation-accuracy",
+            "issue:JENKINS-445/estimation-accuracy",
+            "issue:JENKINS-450/estimation-accuracy",
+            "issue:JENKINS-465/estimation-accuracy",
+            "issue:JENKINS-469/estimation-accuracy",
+            "issue:JENKINS-470/estimation-accuracy",
+            "issue:JENKINS-471/estimation-accuracy",
+            "issue:JENKINS-477/estimation-accuracy",
+            "issue:JENKINS-479/estimation-accuracy",
+            "issue:JENKINS-49/estimation-accuracy",
+            "issue:JENKINS-76/estimation-accuracy"
+          ],
+          "value": 0
+        },
+        "estimation_accuracy.coverage": {
+          "evidence_refs": [
+            "issue:JENKINS-180/estimation-accuracy",
+            "issue:JENKINS-225/estimation-accuracy",
+            "issue:JENKINS-229/estimation-accuracy",
+            "issue:JENKINS-244/estimation-accuracy",
+            "issue:JENKINS-294/estimation-accuracy",
+            "issue:JENKINS-330/estimation-accuracy",
+            "issue:JENKINS-361/estimation-accuracy",
+            "issue:JENKINS-408/estimation-accuracy",
+            "issue:JENKINS-416/estimation-accuracy",
+            "issue:JENKINS-417/estimation-accuracy",
+            "issue:JENKINS-421/estimation-accuracy",
+            "issue:JENKINS-422/estimation-accuracy",
+            "issue:JENKINS-423/estimation-accuracy",
+            "issue:JENKINS-424/estimation-accuracy",
+            "issue:JENKINS-426/estimation-accuracy",
+            "issue:JENKINS-427/estimation-accuracy",
+            "issue:JENKINS-429/estimation-accuracy",
+            "issue:JENKINS-439/estimation-accuracy",
+            "issue:JENKINS-443/estimation-accuracy",
+            "issue:JENKINS-444/estimation-accuracy",
+            "issue:JENKINS-445/estimation-accuracy",
+            "issue:JENKINS-450/estimation-accuracy",
+            "issue:JENKINS-465/estimation-accuracy",
+            "issue:JENKINS-469/estimation-accuracy",
+            "issue:JENKINS-470/estimation-accuracy",
+            "issue:JENKINS-471/estimation-accuracy",
+            "issue:JENKINS-477/estimation-accuracy",
+            "issue:JENKINS-479/estimation-accuracy",
+            "issue:JENKINS-49/estimation-accuracy",
+            "issue:JENKINS-76/estimation-accuracy"
+          ],
+          "value": 0.0
+        },
+        "estimation_accuracy.issue_count": {
+          "evidence_refs": [
+            "issue:JENKINS-180/estimation-accuracy",
+            "issue:JENKINS-225/estimation-accuracy",
+            "issue:JENKINS-229/estimation-accuracy",
+            "issue:JENKINS-244/estimation-accuracy",
+            "issue:JENKINS-294/estimation-accuracy",
+            "issue:JENKINS-330/estimation-accuracy",
+            "issue:JENKINS-361/estimation-accuracy",
+            "issue:JENKINS-408/estimation-accuracy",
+            "issue:JENKINS-416/estimation-accuracy",
+            "issue:JENKINS-417/estimation-accuracy",
+            "issue:JENKINS-421/estimation-accuracy",
+            "issue:JENKINS-422/estimation-accuracy",
+            "issue:JENKINS-423/estimation-accuracy",
+            "issue:JENKINS-424/estimation-accuracy",
+            "issue:JENKINS-426/estimation-accuracy",
+            "issue:JENKINS-427/estimation-accuracy",
+            "issue:JENKINS-429/estimation-accuracy",
+            "issue:JENKINS-439/estimation-accuracy",
+            "issue:JENKINS-443/estimation-accuracy",
+            "issue:JENKINS-444/estimation-accuracy",
+            "issue:JENKINS-445/estimation-accuracy",
+            "issue:JENKINS-450/estimation-accuracy",
+            "issue:JENKINS-465/estimation-accuracy",
+            "issue:JENKINS-469/estimation-accuracy",
+            "issue:JENKINS-470/estimation-accuracy",
+            "issue:JENKINS-471/estimation-accuracy",
+            "issue:JENKINS-477/estimation-accuracy",
+            "issue:JENKINS-479/estimation-accuracy",
+            "issue:JENKINS-49/estimation-accuracy",
+            "issue:JENKINS-76/estimation-accuracy"
+          ],
+          "value": 30
+        },
+        "estimation_accuracy.over_count": {
+          "evidence_refs": [
+            "issue:JENKINS-180/estimation-accuracy",
+            "issue:JENKINS-225/estimation-accuracy",
+            "issue:JENKINS-229/estimation-accuracy",
+            "issue:JENKINS-244/estimation-accuracy",
+            "issue:JENKINS-294/estimation-accuracy",
+            "issue:JENKINS-330/estimation-accuracy",
+            "issue:JENKINS-361/estimation-accuracy",
+            "issue:JENKINS-408/estimation-accuracy",
+            "issue:JENKINS-416/estimation-accuracy",
+            "issue:JENKINS-417/estimation-accuracy",
+            "issue:JENKINS-421/estimation-accuracy",
+            "issue:JENKINS-422/estimation-accuracy",
+            "issue:JENKINS-423/estimation-accuracy",
+            "issue:JENKINS-424/estimation-accuracy",
+            "issue:JENKINS-426/estimation-accuracy",
+            "issue:JENKINS-427/estimation-accuracy",
+            "issue:JENKINS-429/estimation-accuracy",
+            "issue:JENKINS-439/estimation-accuracy",
+            "issue:JENKINS-443/estimation-accuracy",
+            "issue:JENKINS-444/estimation-accuracy",
+            "issue:JENKINS-445/estimation-accuracy",
+            "issue:JENKINS-450/estimation-accuracy",
+            "issue:JENKINS-465/estimation-accuracy",
+            "issue:JENKINS-469/estimation-accuracy",
+            "issue:JENKINS-470/estimation-accuracy",
+            "issue:JENKINS-471/estimation-accuracy",
+            "issue:JENKINS-477/estimation-accuracy",
+            "issue:JENKINS-479/estimation-accuracy",
+            "issue:JENKINS-49/estimation-accuracy",
+            "issue:JENKINS-76/estimation-accuracy"
+          ],
+          "value": 0
+        },
+        "estimation_accuracy.under_count": {
+          "evidence_refs": [
+            "issue:JENKINS-180/estimation-accuracy",
+            "issue:JENKINS-225/estimation-accuracy",
+            "issue:JENKINS-229/estimation-accuracy",
+            "issue:JENKINS-244/estimation-accuracy",
+            "issue:JENKINS-294/estimation-accuracy",
+            "issue:JENKINS-330/estimation-accuracy",
+            "issue:JENKINS-361/estimation-accuracy",
+            "issue:JENKINS-408/estimation-accuracy",
+            "issue:JENKINS-416/estimation-accuracy",
+            "issue:JENKINS-417/estimation-accuracy",
+            "issue:JENKINS-421/estimation-accuracy",
+            "issue:JENKINS-422/estimation-accuracy",
+            "issue:JENKINS-423/estimation-accuracy",
+            "issue:JENKINS-424/estimation-accuracy",
+            "issue:JENKINS-426/estimation-accuracy",
+            "issue:JENKINS-427/estimation-accuracy",
+            "issue:JENKINS-429/estimation-accuracy",
+            "issue:JENKINS-439/estimation-accuracy",
+            "issue:JENKINS-443/estimation-accuracy",
+            "issue:JENKINS-444/estimation-accuracy",
+            "issue:JENKINS-445/estimation-accuracy",
+            "issue:JENKINS-450/estimation-accuracy",
+            "issue:JENKINS-465/estimation-accuracy",
+            "issue:JENKINS-469/estimation-accuracy",
+            "issue:JENKINS-470/estimation-accuracy",
+            "issue:JENKINS-471/estimation-accuracy",
+            "issue:JENKINS-477/estimation-accuracy",
+            "issue:JENKINS-479/estimation-accuracy",
+            "issue:JENKINS-49/estimation-accuracy",
+            "issue:JENKINS-76/estimation-accuracy"
+          ],
+          "value": 0
+        },
+        "reopen.event_count": {
+          "evidence_refs": [],
+          "value": 0
+        },
+        "scope_change.late_child_count": {
+          "evidence_refs": [],
+          "value": 0
+        },
+        "scope_change.spec_change_count": {
+          "evidence_refs": [],
+          "value": 0
+        },
+        "spec_quality.ac_missing_or_empty_count": {
+          "evidence_refs": [
+            "issue:JENKINS-180/spec-quality-indicators",
+            "issue:JENKINS-225/spec-quality-indicators",
+            "issue:JENKINS-229/spec-quality-indicators",
+            "issue:JENKINS-244/spec-quality-indicators",
+            "issue:JENKINS-294/spec-quality-indicators",
+            "issue:JENKINS-330/spec-quality-indicators",
+            "issue:JENKINS-361/spec-quality-indicators",
+            "issue:JENKINS-408/spec-quality-indicators",
+            "issue:JENKINS-416/spec-quality-indicators",
+            "issue:JENKINS-417/spec-quality-indicators",
+            "issue:JENKINS-421/spec-quality-indicators",
+            "issue:JENKINS-422/spec-quality-indicators",
+            "issue:JENKINS-423/spec-quality-indicators",
+            "issue:JENKINS-424/spec-quality-indicators",
+            "issue:JENKINS-426/spec-quality-indicators",
+            "issue:JENKINS-427/spec-quality-indicators",
+            "issue:JENKINS-429/spec-quality-indicators",
+            "issue:JENKINS-439/spec-quality-indicators",
+            "issue:JENKINS-443/spec-quality-indicators",
+            "issue:JENKINS-444/spec-quality-indicators",
+            "issue:JENKINS-445/spec-quality-indicators",
+            "issue:JENKINS-450/spec-quality-indicators",
+            "issue:JENKINS-465/spec-quality-indicators",
+            "issue:JENKINS-469/spec-quality-indicators",
+            "issue:JENKINS-470/spec-quality-indicators",
+            "issue:JENKINS-471/spec-quality-indicators",
+            "issue:JENKINS-477/spec-quality-indicators",
+            "issue:JENKINS-479/spec-quality-indicators",
+            "issue:JENKINS-49/spec-quality-indicators",
+            "issue:JENKINS-76/spec-quality-indicators"
+          ],
+          "value": 0
+        },
+        "spec_quality.issue_count": {
+          "evidence_refs": [
+            "issue:JENKINS-180/spec-quality-indicators",
+            "issue:JENKINS-225/spec-quality-indicators",
+            "issue:JENKINS-229/spec-quality-indicators",
+            "issue:JENKINS-244/spec-quality-indicators",
+            "issue:JENKINS-294/spec-quality-indicators",
+            "issue:JENKINS-330/spec-quality-indicators",
+            "issue:JENKINS-361/spec-quality-indicators",
+            "issue:JENKINS-408/spec-quality-indicators",
+            "issue:JENKINS-416/spec-quality-indicators",
+            "issue:JENKINS-417/spec-quality-indicators",
+            "issue:JENKINS-421/spec-quality-indicators",
+            "issue:JENKINS-422/spec-quality-indicators",
+            "issue:JENKINS-423/spec-quality-indicators",
+            "issue:JENKINS-424/spec-quality-indicators",
+            "issue:JENKINS-426/spec-quality-indicators",
+            "issue:JENKINS-427/spec-quality-indicators",
+            "issue:JENKINS-429/spec-quality-indicators",
+            "issue:JENKINS-439/spec-quality-indicators",
+            "issue:JENKINS-443/spec-quality-indicators",
+            "issue:JENKINS-444/spec-quality-indicators",
+            "issue:JENKINS-445/spec-quality-indicators",
+            "issue:JENKINS-450/spec-quality-indicators",
+            "issue:JENKINS-465/spec-quality-indicators",
+            "issue:JENKINS-469/spec-quality-indicators",
+            "issue:JENKINS-470/spec-quality-indicators",
+            "issue:JENKINS-471/spec-quality-indicators",
+            "issue:JENKINS-477/spec-quality-indicators",
+            "issue:JENKINS-479/spec-quality-indicators",
+            "issue:JENKINS-49/spec-quality-indicators",
+            "issue:JENKINS-76/spec-quality-indicators"
+          ],
+          "value": 30
+        }
+      },
+      "mode": "remote",
+      "org_id": "081c2927-67e8-497e-9b01-9adc7a560492",
+      "org_name": "Public Jira Corpus \u2014 Jenkins",
+      "range_end": "2026-12-31",
+      "range_start": "2000-01-01",
+      "report_id": "a845a4e1-695c-432a-826a-9e4e3f184f5c",
+      "report_status": "success",
+      "report_version": 1,
+      "source": "jenkins_issues",
+      "tos_verified_date": "2026-09-13",
+      "transition_count": 65
+    }
+  ],
+  "study": "signal-validation",
+  "tos": {
+    "apache_issues": {
+      "path": "/app/_docs/public-jira-corpus.md",
+      "status": "allowed",
+      "verified_date": "2026-09-12"
+    },
+    "jenkins_issues": {
+      "path": "/app/_docs/public-jira-corpus.md",
+      "status": "allowed",
+      "verified_date": "2026-09-13"
+    }
+  }
+}

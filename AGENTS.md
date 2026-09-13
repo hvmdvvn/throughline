@@ -38,7 +38,8 @@ Requires Python 3.12+. Create and activate a virtualenv first (`python -m venv .
 | Jira changelog import (admin, auth) | `POST /admin/jira/changelog` (enqueue arq job); `GET /admin/jira/changelog` (progress) |
 | Diagnostic report (arq) | `generate_diagnostic_report` job — args `org_id`, `range_start`, `range_end` (ISO dates) |
 | Diagnostic reports (auth) | `GET /reports` (list); `GET /reports/{id}` (metrics); `GET /reports/{id}/metrics/{metric_key}/evidence?page=&limit=` |
-| Public Jira corpus (local/dev) | `python -m throughline.ingest.corpus` (fixture subset); optional `--remote` (manual ASF fetch). ToS: `_docs/public-jira-corpus.md` |
+| Public Jira corpus (local/dev) | `python -m throughline.ingest.corpus` (fixture subset); optional `--remote [--source apache_issues|jenkins_issues]` (manual live fetch). ToS: `_docs/public-jira-corpus.md` |
+| Signal validation study (#26) | `python -m throughline.analytics.signal_validation` (fixture, ≥2 sources); optional `--remote` for live ASF+Jenkins. Findings: `_docs/signal-validation-study.md`; metrics: `_docs/artifacts/signal-validation-metrics.json` |
 | Web app install | `cd throughline/web && npm install` |
 | Web app (local, against API) | `cd throughline/web && cp .env.example .env.local` (set Clerk keys + `NEXT_PUBLIC_API_URL=http://localhost:8000`) then `npm run dev` → http://localhost:3000 |
 | Web typecheck / smoke / build | `cd throughline/web && npm run typecheck && npm run test:smoke && npm run build` |
@@ -83,6 +84,7 @@ Derived from `_docs/PLAN.md` and existing repo decisions only:
 | `_docs/team/qa-engineer.md` | QA verification role |
 | [`_docs/backlog-audit.md`](_docs/backlog-audit.md) | Backlog audit findings |
 | [`_docs/public-jira-corpus.md`](_docs/public-jira-corpus.md) | Public Jira corpus ToS verification (issue #16) |
+| [`_docs/signal-validation-study.md`](_docs/signal-validation-study.md) | Phase 0 churn-signal go/no-go findings (issue #26) |
 | `README.md` | Human-facing project overview |
 
 Missing but referenced by plan: `product-definition.md` (what/why). Do not invent it.

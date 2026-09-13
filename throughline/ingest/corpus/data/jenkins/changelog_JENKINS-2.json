@@ -1,0 +1,54 @@
+{
+  "self": "https://issues.jenkins.io/rest/api/2/issue/JENKINS-2/changelog?startAt=0&maxResults=100",
+  "maxResults": 100,
+  "startAt": 0,
+  "total": 3,
+  "isLast": true,
+  "values": [
+    {
+      "id": "82001",
+      "author": {"name": "dev", "displayName": "Dev User"},
+      "created": "2023-02-02T10:00:00.000+0000",
+      "items": [
+        {
+          "field": "status",
+          "fieldtype": "jira",
+          "from": "1",
+          "fromString": "Open",
+          "to": "3",
+          "toString": "In Progress"
+        }
+      ]
+    },
+    {
+      "id": "82002",
+      "author": {"name": "dev", "displayName": "Dev User"},
+      "created": "2023-02-05T14:00:00.000+0000",
+      "items": [
+        {
+          "field": "status",
+          "fieldtype": "jira",
+          "from": "3",
+          "fromString": "In Progress",
+          "to": "5",
+          "toString": "Resolved"
+        }
+      ]
+    },
+    {
+      "id": "82003",
+      "author": {"name": "qa", "displayName": "QA User"},
+      "created": "2023-02-08T09:00:00.000+0000",
+      "items": [
+        {
+          "field": "status",
+          "fieldtype": "jira",
+          "from": "5",
+          "fromString": "Resolved",
+          "to": "1",
+          "toString": "Open"
+        }
+      ]
+    }
+  ]
+}

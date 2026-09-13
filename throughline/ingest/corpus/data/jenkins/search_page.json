@@ -1,0 +1,61 @@
+{
+  "expand": "names,schema",
+  "startAt": 0,
+  "maxResults": 3,
+  "total": 3,
+  "issues": [
+    {
+      "id": "80001",
+      "key": "JENKINS-1",
+      "fields": {
+        "summary": "Jenkins fixture: resolve without reopen",
+        "status": {"id": "5", "name": "Resolved"},
+        "issuetype": {"id": "1", "name": "Bug"},
+        "project": {"id": "80000", "key": "JENKINS", "name": "Jenkins"},
+        "created": "2023-01-10T09:00:00.000+0000",
+        "updated": "2023-01-12T15:00:00.000+0000",
+        "description": "Short.",
+        "labels": ["corpus", "fixture", "jenkins"],
+        "priority": {"id": "3", "name": "Major"},
+        "assignee": null,
+        "reporter": {"name": "corpus-bot", "displayName": "Corpus Bot"},
+        "timeoriginalestimate": 28800
+      }
+    },
+    {
+      "id": "80002",
+      "key": "JENKINS-2",
+      "fields": {
+        "summary": "Jenkins fixture: reopen after resolve",
+        "status": {"id": "1", "name": "Open"},
+        "issuetype": {"id": "1", "name": "Bug"},
+        "project": {"id": "80000", "key": "JENKINS", "name": "Jenkins"},
+        "created": "2023-02-01T11:00:00.000+0000",
+        "updated": "2023-02-08T09:00:00.000+0000",
+        "description": "",
+        "labels": ["corpus", "fixture", "jenkins"],
+        "priority": {"id": "2", "name": "Critical"},
+        "assignee": {"name": "dev", "displayName": "Dev User"},
+        "reporter": {"name": "corpus-bot", "displayName": "Corpus Bot"}
+      }
+    },
+    {
+      "id": "80003",
+      "key": "JENKINS-3",
+      "fields": {
+        "summary": "Jenkins fixture: second reopen path",
+        "status": {"id": "5", "name": "Resolved"},
+        "issuetype": {"id": "2", "name": "Improvement"},
+        "project": {"id": "80000", "key": "JENKINS", "name": "Jenkins"},
+        "created": "2023-03-01T10:00:00.000+0000",
+        "updated": "2023-03-10T16:00:00.000+0000",
+        "description": "Another short description used only for length-bucket variance in fixtures.",
+        "labels": ["corpus", "fixture", "jenkins"],
+        "priority": {"id": "3", "name": "Major"},
+        "assignee": null,
+        "reporter": {"name": "corpus-bot", "displayName": "Corpus Bot"},
+        "timeoriginalestimate": 14400
+      }
+    }
+  ]
+}

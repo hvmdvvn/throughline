@@ -1,0 +1,440 @@
+{
+  "metric_deltas": {
+    "cycle_time.completed_issue_count": {
+      "abs_delta": 1,
+      "by_source": {
+        "apache_issues": 2,
+        "jenkins_issues": 3
+      },
+      "varies": true
+    },
+    "cycle_time.median_seconds": {
+      "abs_delta": 79200.0,
+      "by_source": {
+        "apache_issues": 100800.0,
+        "jenkins_issues": 180000.0
+      },
+      "varies": true
+    },
+    "estimation_accuracy.accurate_count": {
+      "abs_delta": 0,
+      "by_source": {
+        "apache_issues": 0,
+        "jenkins_issues": 0
+      },
+      "varies": false
+    },
+    "estimation_accuracy.coverage": {
+      "abs_delta": 0.6666666666666666,
+      "by_source": {
+        "apache_issues": 0.0,
+        "jenkins_issues": 0.6666666666666666
+      },
+      "varies": true
+    },
+    "estimation_accuracy.issue_count": {
+      "abs_delta": 1,
+      "by_source": {
+        "apache_issues": 2,
+        "jenkins_issues": 3
+      },
+      "varies": true
+    },
+    "estimation_accuracy.over_count": {
+      "abs_delta": 0,
+      "by_source": {
+        "apache_issues": 0,
+        "jenkins_issues": 0
+      },
+      "varies": false
+    },
+    "estimation_accuracy.under_count": {
+      "abs_delta": 2,
+      "by_source": {
+        "apache_issues": 0,
+        "jenkins_issues": 2
+      },
+      "varies": true
+    },
+    "reopen.event_count": {
+      "abs_delta": 1,
+      "by_source": {
+        "apache_issues": 1,
+        "jenkins_issues": 2
+      },
+      "varies": true
+    },
+    "scope_change.late_child_count": {
+      "abs_delta": 0,
+      "by_source": {
+        "apache_issues": 0,
+        "jenkins_issues": 0
+      },
+      "varies": false
+    },
+    "scope_change.spec_change_count": {
+      "abs_delta": 1,
+      "by_source": {
+        "apache_issues": 0,
+        "jenkins_issues": 1
+      },
+      "varies": true
+    },
+    "spec_quality.ac_missing_or_empty_count": {
+      "abs_delta": 0,
+      "by_source": {
+        "apache_issues": 0,
+        "jenkins_issues": 0
+      },
+      "varies": false
+    },
+    "spec_quality.issue_count": {
+      "abs_delta": 1,
+      "by_source": {
+        "apache_issues": 2,
+        "jenkins_issues": 3
+      },
+      "varies": true
+    }
+  },
+  "metric_keys": [
+    "cycle_time.completed_issue_count",
+    "cycle_time.median_seconds",
+    "estimation_accuracy.accurate_count",
+    "estimation_accuracy.coverage",
+    "estimation_accuracy.issue_count",
+    "estimation_accuracy.over_count",
+    "estimation_accuracy.under_count",
+    "reopen.event_count",
+    "scope_change.late_child_count",
+    "scope_change.spec_change_count",
+    "spec_quality.ac_missing_or_empty_count",
+    "spec_quality.issue_count"
+  ],
+  "notes": [
+    "apache_issues: mode=fixture issues=2 transitions=5 report=success v1",
+    "jenkins_issues: mode=fixture issues=3 transitions=9 report=success v1",
+    "reopen events present on at least one source \u2014 compare rates across sources: {'apache_issues': 1, 'jenkins_issues': 2}",
+    "spec_quality AC-missing counts are zero/null \u2014 public corpora often lack AC field mappings; reopen\u2194spec-quality correlation cannot be validated without mapped AC fields.",
+    "reopen_vs_ac_missing_cross_source: insufficient variance to judge co-movement",
+    "metrics_with_nonzero_cross_source_delta=8/12"
+  ],
+  "sources": [
+    {
+      "error_message": null,
+      "generation_detail": {
+        "cycle_time": {
+          "compute_result": 2,
+          "metric_keys": [
+            "cycle_time.completed_issue_count",
+            "cycle_time.median_seconds"
+          ],
+          "ok": true
+        },
+        "estimation_accuracy": {
+          "compute_result": [
+            2,
+            1
+          ],
+          "metric_keys": [
+            "estimation_accuracy.accurate_count",
+            "estimation_accuracy.coverage",
+            "estimation_accuracy.issue_count",
+            "estimation_accuracy.over_count",
+            "estimation_accuracy.under_count"
+          ],
+          "ok": true
+        },
+        "reopen": {
+          "compute_result": [
+            1,
+            2
+          ],
+          "metric_keys": [
+            "reopen.event_count"
+          ],
+          "ok": true
+        },
+        "scope_change": {
+          "compute_result": [
+            0,
+            0,
+            0
+          ],
+          "metric_keys": [
+            "scope_change.late_child_count",
+            "scope_change.spec_change_count"
+          ],
+          "ok": true
+        },
+        "spec_quality": {
+          "compute_result": [
+            2,
+            2
+          ],
+          "metric_keys": [
+            "spec_quality.ac_missing_or_empty_count",
+            "spec_quality.issue_count"
+          ],
+          "ok": true
+        }
+      },
+      "issue_count": 2,
+      "metrics": {
+        "cycle_time.completed_issue_count": {
+          "evidence_refs": [
+            "issue:CORPUS-1/cycle-time",
+            "issue:CORPUS-2/cycle-time"
+          ],
+          "value": 2
+        },
+        "cycle_time.median_seconds": {
+          "evidence_refs": [
+            "issue:CORPUS-1/cycle-time",
+            "issue:CORPUS-2/cycle-time"
+          ],
+          "value": 100800.0
+        },
+        "estimation_accuracy.accurate_count": {
+          "evidence_refs": [
+            "issue:CORPUS-1/estimation-accuracy",
+            "issue:CORPUS-2/estimation-accuracy"
+          ],
+          "value": 0
+        },
+        "estimation_accuracy.coverage": {
+          "evidence_refs": [
+            "issue:CORPUS-1/estimation-accuracy",
+            "issue:CORPUS-2/estimation-accuracy"
+          ],
+          "value": 0.0
+        },
+        "estimation_accuracy.issue_count": {
+          "evidence_refs": [
+            "issue:CORPUS-1/estimation-accuracy",
+            "issue:CORPUS-2/estimation-accuracy"
+          ],
+          "value": 2
+        },
+        "estimation_accuracy.over_count": {
+          "evidence_refs": [
+            "issue:CORPUS-1/estimation-accuracy",
+            "issue:CORPUS-2/estimation-accuracy"
+          ],
+          "value": 0
+        },
+        "estimation_accuracy.under_count": {
+          "evidence_refs": [
+            "issue:CORPUS-1/estimation-accuracy",
+            "issue:CORPUS-2/estimation-accuracy"
+          ],
+          "value": 0
+        },
+        "reopen.event_count": {
+          "evidence_refs": [
+            "issue:CORPUS-2/transition:92003:0"
+          ],
+          "value": 1
+        },
+        "scope_change.late_child_count": {
+          "evidence_refs": [],
+          "value": 0
+        },
+        "scope_change.spec_change_count": {
+          "evidence_refs": [],
+          "value": 0
+        },
+        "spec_quality.ac_missing_or_empty_count": {
+          "evidence_refs": [
+            "issue:CORPUS-1/spec-quality-indicators",
+            "issue:CORPUS-2/spec-quality-indicators"
+          ],
+          "value": 0
+        },
+        "spec_quality.issue_count": {
+          "evidence_refs": [
+            "issue:CORPUS-1/spec-quality-indicators",
+            "issue:CORPUS-2/spec-quality-indicators"
+          ],
+          "value": 2
+        }
+      },
+      "mode": "fixture",
+      "org_id": "4d4afd78-6303-41f2-a59d-9b3f62679ecc",
+      "org_name": "Public Jira Corpus",
+      "range_end": "2030-12-31",
+      "range_start": "2000-01-01",
+      "report_id": "88eef700-09c4-4fe9-b633-363f90639874",
+      "report_status": "success",
+      "report_version": 1,
+      "source": "apache_issues",
+      "tos_status": "allowed",
+      "tos_verified_date": "2026-09-12",
+      "transition_count": 5
+    },
+    {
+      "error_message": null,
+      "generation_detail": {
+        "cycle_time": {
+          "compute_result": 3,
+          "metric_keys": [
+            "cycle_time.completed_issue_count",
+            "cycle_time.median_seconds"
+          ],
+          "ok": true
+        },
+        "estimation_accuracy": {
+          "compute_result": [
+            3,
+            3
+          ],
+          "metric_keys": [
+            "estimation_accuracy.accurate_count",
+            "estimation_accuracy.coverage",
+            "estimation_accuracy.issue_count",
+            "estimation_accuracy.over_count",
+            "estimation_accuracy.under_count"
+          ],
+          "ok": true
+        },
+        "reopen": {
+          "compute_result": [
+            2,
+            4
+          ],
+          "metric_keys": [
+            "reopen.event_count"
+          ],
+          "ok": true
+        },
+        "scope_change": {
+          "compute_result": [
+            0,
+            1,
+            2
+          ],
+          "metric_keys": [
+            "scope_change.late_child_count",
+            "scope_change.spec_change_count"
+          ],
+          "ok": true
+        },
+        "spec_quality": {
+          "compute_result": [
+            3,
+            6
+          ],
+          "metric_keys": [
+            "spec_quality.ac_missing_or_empty_count",
+            "spec_quality.issue_count"
+          ],
+          "ok": true
+        }
+      },
+      "issue_count": 3,
+      "metrics": {
+        "cycle_time.completed_issue_count": {
+          "evidence_refs": [
+            "issue:JENKINS-1/cycle-time",
+            "issue:JENKINS-2/cycle-time",
+            "issue:JENKINS-3/cycle-time"
+          ],
+          "value": 3
+        },
+        "cycle_time.median_seconds": {
+          "evidence_refs": [
+            "issue:JENKINS-1/cycle-time",
+            "issue:JENKINS-2/cycle-time",
+            "issue:JENKINS-3/cycle-time"
+          ],
+          "value": 180000.0
+        },
+        "estimation_accuracy.accurate_count": {
+          "evidence_refs": [
+            "issue:JENKINS-1/estimation-accuracy",
+            "issue:JENKINS-2/estimation-accuracy",
+            "issue:JENKINS-3/estimation-accuracy"
+          ],
+          "value": 0
+        },
+        "estimation_accuracy.coverage": {
+          "evidence_refs": [
+            "issue:JENKINS-1/estimation-accuracy",
+            "issue:JENKINS-2/estimation-accuracy",
+            "issue:JENKINS-3/estimation-accuracy"
+          ],
+          "value": 0.6666666666666666
+        },
+        "estimation_accuracy.issue_count": {
+          "evidence_refs": [
+            "issue:JENKINS-1/estimation-accuracy",
+            "issue:JENKINS-2/estimation-accuracy",
+            "issue:JENKINS-3/estimation-accuracy"
+          ],
+          "value": 3
+        },
+        "estimation_accuracy.over_count": {
+          "evidence_refs": [
+            "issue:JENKINS-1/estimation-accuracy",
+            "issue:JENKINS-2/estimation-accuracy",
+            "issue:JENKINS-3/estimation-accuracy"
+          ],
+          "value": 0
+        },
+        "estimation_accuracy.under_count": {
+          "evidence_refs": [
+            "issue:JENKINS-1/estimation-accuracy",
+            "issue:JENKINS-2/estimation-accuracy",
+            "issue:JENKINS-3/estimation-accuracy"
+          ],
+          "value": 2
+        },
+        "reopen.event_count": {
+          "evidence_refs": [
+            "issue:JENKINS-2/transition:82003:0",
+            "issue:JENKINS-3/transition:83003:0"
+          ],
+          "value": 2
+        },
+        "scope_change.late_child_count": {
+          "evidence_refs": [],
+          "value": 0
+        },
+        "scope_change.spec_change_count": {
+          "evidence_refs": [
+            "issue:JENKINS-3/field:description:83005:0"
+          ],
+          "value": 1
+        },
+        "spec_quality.ac_missing_or_empty_count": {
+          "evidence_refs": [
+            "issue:JENKINS-1/spec-quality-indicators",
+            "issue:JENKINS-2/spec-quality-indicators",
+            "issue:JENKINS-3/spec-quality-indicators"
+          ],
+          "value": 0
+        },
+        "spec_quality.issue_count": {
+          "evidence_refs": [
+            "issue:JENKINS-1/spec-quality-indicators",
+            "issue:JENKINS-2/spec-quality-indicators",
+            "issue:JENKINS-3/spec-quality-indicators"
+          ],
+          "value": 3
+        }
+      },
+      "mode": "fixture",
+      "org_id": "efc7e8ae-7300-42b1-a176-ce09fb447474",
+      "org_name": "Public Jira Corpus \u2014 Jenkins",
+      "range_end": "2030-12-31",
+      "range_start": "2000-01-01",
+      "report_id": "f2de802b-ee3c-4e9e-8b29-b0f14662615d",
+      "report_status": "success",
+      "report_version": 1,
+      "source": "jenkins_issues",
+      "tos_status": "allowed",
+      "tos_verified_date": "2026-09-13",
+      "transition_count": 9
+    }
+  ]
+}
