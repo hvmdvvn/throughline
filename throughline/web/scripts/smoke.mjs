@@ -42,6 +42,10 @@ assert.match(metrics, /scope_change\.late_child_count/);
 assert.match(metrics, /spec_quality/);
 assert.match(metrics, /estimation_accuracy\.coverage/);
 assert.match(metrics, /REPORT_SECTIONS/);
+assert.match(metrics, /title:\s*"Rework"/);
+assert.match(metrics, /title:\s*"Scope change"/);
+assert.match(metrics, /title:\s*"Spec quality"/);
+assert.match(metrics, /title:\s*"Estimation accuracy"/);
 
 const diagnosticPage = readFileSync(
   join(root, "src/app/(shell)/diagnostic/page.tsx"),
@@ -55,6 +59,7 @@ assert.ok(
   ),
 );
 assert.ok(existsSync(join(root, "src/components/diagnostic/evidence-panel.tsx")));
+assert.ok(existsSync(join(root, "src/components/diagnostic/trend-sparkline.tsx")));
 
 const reportView = readFileSync(
   join(root, "src/components/diagnostic/diagnostic-report-view.tsx"),
@@ -62,10 +67,12 @@ const reportView = readFileSync(
 );
 assert.match(reportView, /useAuth/);
 assert.match(reportView, /EvidencePanel/);
-assert.match(reportView, /Rework/);
-assert.match(reportView, /Scope change/);
-assert.match(reportView, /Spec quality/);
-assert.match(reportView, /Estimation accuracy/);
+assert.match(reportView, /REPORT_SECTIONS/);
+assert.match(reportView, /getReportMetricEvidence|openEvidence|setEvidence/);
+assert.match(reportView, /Rework rate/);
+assert.match(reportView, /Trends/);
+assert.match(reportView, /Loading diagnostic reports/);
+assert.match(reportView, /No diagnostic reports/);
 
 const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
 assert.ok(pkg.dependencies["@clerk/nextjs"], "Clerk SDK missing");
