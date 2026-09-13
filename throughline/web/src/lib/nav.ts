@@ -6,6 +6,7 @@
  * queue), Settings (connections / field mappings / prefs).
  */
 export const NAV_ITEMS = [
+  { href: "/onboarding", label: "Onboarding" },
   { href: "/diagnostic", label: "Diagnostic report" },
   { href: "/pipeline", label: "Pipeline" },
   { href: "/needs-attention", label: "Needs attention" },

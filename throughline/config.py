@@ -83,6 +83,22 @@ class Settings(BaseSettings):
     # Development may omit and use a documented insecure default; production must set it.
     credentials_encryption_key: str = ""
 
+    # Next.js web app origin (issue #27). Used for OAuth return redirect and
+    # report-ready email links. Empty → OAuth callback returns JSON (API-only).
+    # Example: http://localhost:3000
+    web_app_url: str = ""
+
+    # Outbound email for diagnostic onboarding (issue #27). When EMAIL_ENABLED
+    # is false or SMTP_* is incomplete, delivery is skipped (logged) so local
+    # flows can complete without a mail server.
+    email_enabled: bool = False
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_from: str = ""
+    smtp_use_tls: bool = True
+
     # Optional stubs for upcoming foundation work. Not required to boot.
     anthropic_api_key: str | None = Field(default=None)
     openai_api_key: str | None = Field(default=None)

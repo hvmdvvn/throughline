@@ -167,3 +167,90 @@ export async function getReportMetricEvidence(
   const res = await apiFetch(path, { ...options, token, cache: "no-store" });
   return parseJsonOrThrow<DiagnosticMetricEvidencePage>(res);
 }
+
+/** Guided diagnostic onboarding progress (issue #27). */
+export type DiagnosticOnboardingProgress = {
+  id: string;
+  org_id: string;
+  stage: string;
+  notify_email: string;
+  range_start: string;
+  range_end: string;
+  jql: string | null;
+  progress_status: string | null;
+  progress_imported_count: number;
+  progress_total_estimate: number | null;
+  progress_detail: string | null;
+  progress_updated_at: string | null;
+  orchestrator_job_id: string | null;
+  report_id: string | null;
+  email_status: string | null;
+  email_detail: string | null;
+  email_sent_at: string | null;
+  failed_stage: string | null;
+  error_message: string | null;
+  completed_at: string | null;
+  authorize_url: string | null;
+  report_url: string | null;
+  created_at: string;
+  updated_at: string;
+  recoverable: boolean;
+};
+
+export type DiagnosticOnboardingStartBody = {
+  notify_email: string;
+  range_start: string;
+  range_end: string;
+  jql?: string | null;
+};
+
+export async function getDiagnosticOnboarding(
+  token: string,
+  options: Omit<ApiFetchOptions, "token"> = {},
+): Promise<DiagnosticOnboardingProgress> {
+  const res = await apiFetch("/onboarding/diagnostic", {
+    ...options,
+    token,
+    cache: "no-store",
+  });
+  return parseJsonOrThrow<DiagnosticOnboardingProgress>(res);
+}
+
+export async function startDiagnosticOnboarding(
+  token: string,
+  body: DiagnosticOnboardingStartBody,
+  options: Omit<ApiFetchOptions, "token"> = {},
+): Promise<DiagnosticOnboardingProgress> {
+  const res = await apiFetch("/onboarding/diagnostic", {
+    ...options,
+    token,
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  return parseJsonOrThrow<DiagnosticOnboardingProgress>(res);
+}
+
+export async function continueDiagnosticOnboarding(
+  token: string,
+  options: Omit<ApiFetchOptions, "token"> = {},
+): Promise<DiagnosticOnboardingProgress> {
+  const res = await apiFetch("/onboarding/diagnostic/continue", {
+    ...options,
+    token,
+    method: "POST",
+  });
+  return parseJsonOrThrow<DiagnosticOnboardingProgress>(res);
+}
+
+export async function retryDiagnosticOnboarding(
+  token: string,
+  options: Omit<ApiFetchOptions, "token"> = {},
+): Promise<DiagnosticOnboardingProgress> {
+  const res = await apiFetch("/onboarding/diagnostic/retry", {
+    ...options,
+    token,
+    method: "POST",
+  });
+  return parseJsonOrThrow<DiagnosticOnboardingProgress>(res);
+}

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import uuid
 from typing import Annotated
+from urllib.parse import urlencode
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import JSONResponse, RedirectResponse
@@ -17,6 +18,7 @@ from sqlalchemy.orm import Session
 from throughline.api.auth import require_admin, resolve_org_from_membership
 from throughline.api.deps import get_db
 from throughline.api.schemas import JiraConnectionStatusResponse, JiraOAuthAuthorizeResponse
+from throughline.config import settings
 from throughline.connectors.jira.oauth import AtlassianOAuthError
 from throughline.connectors.jira.service import (
     authorization_redirect_url,
@@ -91,18 +93,37 @@ def jira_disconnect(
     )
 
 
-@router.get("/connectors/jira/oauth/callback")
+def _post_oauth_redirect(payload: dict[str, object]) -> RedirectResponse | JSONResponse:
+    """Prefer browser return to the web onboarding wizard when WEB_APP_URL is set."""
+    base = settings.web_app_url.strip().rstrip("/")
+    if not base:
+        return JSONResponse(payload)
+    query = urlencode({"jira": "connected"})
+    return RedirectResponse(
+        url=f"{base}/onboarding?{query}",
+        status_code=status.HTTP_302_FOUND,
+    )
+
+
+@router.get("/connectors/jira/oauth/callback", response_model=None)
 def jira_oauth_callback(
     db: Annotated[Session, Depends(get_db)],
     code: Annotated[str | None, Query()] = None,
     state: Annotated[str | None, Query()] = None,
     error: Annotated[str | None, Query()] = None,
     error_description: Annotated[str | None, Query()] = None,
-) -> JSONResponse:
+):
     """Atlassian redirects here after consent; stores encrypted per-org credentials."""
     if error:
         # Safe for ops: Atlassian error codes only, never tokens.
         detail = error_description or error
+        base = settings.web_app_url.strip().rstrip("/")
+        if base:
+            query = urlencode({"jira": "error", "detail": str(detail)[:200]})
+            return RedirectResponse(
+                url=f"{base}/onboarding?{query}",
+                status_code=status.HTTP_302_FOUND,
+            )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Atlassian authorization denied: {detail}",
@@ -115,16 +136,22 @@ def jira_oauth_callback(
     try:
         connection = complete_oauth_callback(db, code=code, state=state)
     except AtlassianOAuthError as exc:
+        base = settings.web_app_url.strip().rstrip("/")
+        if base:
+            query = urlencode({"jira": "error", "detail": str(exc)[:200]})
+            return RedirectResponse(
+                url=f"{base}/onboarding?{query}",
+                status_code=status.HTTP_302_FOUND,
+            )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(exc),
         ) from exc
-    return JSONResponse(
-        {
-            "status": connection.status.value,
-            "connected": True,
-            "cloud_id": connection.cloud_id,
-            "site_url": connection.site_url,
-            "site_name": connection.site_name,
-        }
-    )
+    payload = {
+        "status": connection.status.value,
+        "connected": True,
+        "cloud_id": connection.cloud_id,
+        "site_url": connection.site_url,
+        "site_name": connection.site_name,
+    }
+    return _post_oauth_redirect(payload)

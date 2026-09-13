@@ -20,6 +20,8 @@ Estimation accuracy (issue #21): ``EstimationAccuracyIssueMetric``,
 per-team only (never per-person).
 Diagnostic reports (issue #22): ``DiagnosticReport`` — versioned immutable
 snapshots of Phase 0 metrics + evidence refs for an org date range.
+Diagnostic onboarding (issue #27): ``DiagnosticOnboarding`` — guided
+OAuth → import → changelog → report → email session with progress.
 ``DevPgvectorProof`` is a disposable foundation table used only to prove
 pgvector round-trips (issue #3). It is not a product embeddings table.
 """
@@ -1006,6 +1008,71 @@ class DiagnosticReport(TenantScopedMixin, Base):
         nullable=True,
     )
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+
+class DiagnosticOnboardingStage(enum.StrEnum):
+    """Guided diagnostic onboarding stages (issue #27)."""
+
+    AWAITING_OAUTH = "awaiting_oauth"
+    IMPORTING_ISSUES = "importing_issues"
+    IMPORTING_CHANGELOG = "importing_changelog"
+    GENERATING_REPORT = "generating_report"
+    SENDING_EMAIL = "sending_email"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
+class DiagnosticOnboarding(TenantScopedMixin, Base):
+    """Per-org diagnostic onboarding session (issue #27).
+
+    One active row per org (unique ``org_id``). Long-running stages persist
+    progress so the user can leave and return while arq continues. Failures
+    land in ``failed`` with ``error_message`` / ``failed_stage`` — never an
+    unexplained forever-running state. Soft-delete only.
+    """
+
+    __tablename__ = "diagnostic_onboardings"
+    __table_args__ = (UniqueConstraint("org_id", name="uq_diagnostic_onboardings_org"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+    # Current stage in the guided flow (see DiagnosticOnboardingStage).
+    stage: Mapped[str] = mapped_column(String(32), nullable=False)
+    notify_email: Mapped[str] = mapped_column(String(320), nullable=False)
+    range_start: Mapped[date] = mapped_column(Date, nullable=False)
+    range_end: Mapped[date] = mapped_column(Date, nullable=False)
+    jql: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Live progress for the active long-running stage (import/changelog).
+    progress_status: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    progress_imported_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    progress_total_estimate: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    progress_detail: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    progress_updated_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    orchestrator_job_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    report_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("diagnostic_reports.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    email_status: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    email_detail: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    email_sent_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    # Stage that failed (when stage == failed); supports recoverable retry.
+    failed_stage: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
 
 
 class DevPgvectorProof(Base):

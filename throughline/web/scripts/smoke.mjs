@@ -11,6 +11,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 const nav = readFileSync(join(root, "src/lib/nav.ts"), "utf8");
 for (const href of [
+  "/onboarding",
   "/diagnostic",
   "/pipeline",
   "/needs-attention",
@@ -35,6 +36,8 @@ assert.match(api, /localhost:8000/);
 assert.match(api, /listReports/);
 assert.match(api, /getReportMetricEvidence/);
 assert.match(api, /\/reports/);
+assert.match(api, /startDiagnosticOnboarding/);
+assert.match(api, /\/onboarding\/diagnostic/);
 
 const metrics = readFileSync(join(root, "src/lib/report-metrics.ts"), "utf8");
 assert.match(metrics, /reopen\.event_count/);
@@ -73,6 +76,25 @@ assert.match(reportView, /Rework rate/);
 assert.match(reportView, /Trends/);
 assert.match(reportView, /Loading diagnostic reports/);
 assert.match(reportView, /No diagnostic reports/);
+
+const onboardingPage = readFileSync(
+  join(root, "src/app/(shell)/onboarding/page.tsx"),
+  "utf8",
+);
+assert.match(onboardingPage, /OnboardingWizard/);
+assert.ok(
+  existsSync(
+    join(root, "src/components/onboarding/onboarding-wizard.tsx"),
+  ),
+);
+const onboardingWizard = readFileSync(
+  join(root, "src/components/onboarding/onboarding-wizard.tsx"),
+  "utf8",
+);
+assert.match(onboardingWizard, /startDiagnosticOnboarding/);
+assert.match(onboardingWizard, /continueDiagnosticOnboarding/);
+assert.match(onboardingWizard, /retryDiagnosticOnboarding/);
+assert.match(onboardingWizard, /importing_issues/);
 
 const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
 assert.ok(pkg.dependencies["@clerk/nextjs"], "Clerk SDK missing");

@@ -19,13 +19,13 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:3000 — sign in, then use the shell nav (Diagnostic report, Pipeline, Needs attention, Settings).
+Open http://localhost:3000 — sign in, then use the shell nav (Onboarding, Diagnostic report, Pipeline, Needs attention, Settings).
 
-**Diagnostic report** (`/diagnostic`, issue #25) loads tenancy-scoped data from `GET /reports`, `GET /reports/{id}`, and evidence from `GET /reports/{id}/metrics/{metric_key}/evidence` using the Clerk session JWT. Other shell routes remain placeholders that probe `GET /me`.
+**Onboarding** (`/onboarding`, issue #27) guides OAuth → import → changelog → report with live progress polling and email-when-ready. **Diagnostic report** (`/diagnostic`, issue #25) loads tenancy-scoped data from `GET /reports`, `GET /reports/{id}`, and evidence from `GET /reports/{id}/metrics/{metric_key}/evidence` using the Clerk session JWT. Other shell routes remain placeholders that probe `GET /me`.
 
 Unauthenticated access to shell routes is blocked by Clerk middleware (`src/proxy.ts`).
 
-Ensure the API allows the web origin (default `CORS_ORIGINS=http://localhost:3000`).
+Ensure the API allows the web origin (default `CORS_ORIGINS=http://localhost:3000`). Set API `WEB_APP_URL=http://localhost:3000` so Atlassian OAuth returns to `/onboarding`.
 
 ## Scripts
 

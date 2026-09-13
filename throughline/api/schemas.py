@@ -231,3 +231,33 @@ class DiagnosticMetricEvidencePage(BaseModel):
     limit: int
     total: int
     has_more: bool
+
+
+class DiagnosticOnboardingProgressResponse(BaseModel):
+    """Guided diagnostic onboarding status for polling (issue #27)."""
+
+    id: uuid.UUID
+    org_id: uuid.UUID
+    stage: str
+    notify_email: str
+    range_start: date
+    range_end: date
+    jql: str | None = None
+    progress_status: str | None = None
+    progress_imported_count: int = 0
+    progress_total_estimate: int | None = None
+    progress_detail: str | None = None
+    progress_updated_at: datetime | None = None
+    orchestrator_job_id: str | None = None
+    report_id: uuid.UUID | None = None
+    email_status: str | None = None
+    email_detail: str | None = None
+    email_sent_at: datetime | None = None
+    failed_stage: str | None = None
+    error_message: str | None = None
+    completed_at: datetime | None = None
+    authorize_url: str | None = None
+    report_url: str | None = None
+    created_at: datetime
+    updated_at: datetime
+    recoverable: bool = False

@@ -14,6 +14,7 @@ from throughline.api.routes import (
     jira_discovery,
     jira_import,
     jira_oauth,
+    onboarding,
     reports,
 )
 from throughline.config import settings
@@ -34,6 +35,7 @@ if settings.cors_origin_list:
 app.include_router(admin.router)
 app.include_router(auth_routes.router)
 app.include_router(reports.router)
+app.include_router(onboarding.router)
 app.include_router(jira_oauth.admin_router)
 app.include_router(jira_oauth.router)
 app.include_router(jira_discovery.admin_router)

@@ -15,12 +15,15 @@ from throughline.workers.jobs import (
     EXAMPLE_JOB_MAX_TRIES,
     IMPORT_JOB_KEEP_RESULT_SECONDS,
     IMPORT_JOB_MAX_TRIES,
+    ONBOARDING_JOB_KEEP_RESULT_SECONDS,
+    ONBOARDING_JOB_MAX_TRIES,
     REPORT_JOB_KEEP_RESULT_SECONDS,
     REPORT_JOB_MAX_TRIES,
     example_sleep_log,
     generate_diagnostic_report_job,
     import_jira_changelog,
     import_jira_issue_history,
+    run_diagnostic_onboarding,
 )
 
 
@@ -65,6 +68,15 @@ generate_diagnostic_report_arq_job = func(
     max_tries=REPORT_JOB_MAX_TRIES,
 )
 
+# Guided diagnostic onboarding orchestrator (issue #27): import → changelog →
+# report → email. Progress is on diagnostic_onboardings for client polling.
+run_diagnostic_onboarding_job = func(
+    run_diagnostic_onboarding,
+    name="run_diagnostic_onboarding",
+    keep_result=ONBOARDING_JOB_KEEP_RESULT_SECONDS,
+    max_tries=ONBOARDING_JOB_MAX_TRIES,
+)
+
 
 class WorkerSettings:
     """Run with: ``arq throughline.workers.settings.WorkerSettings``.
@@ -90,6 +102,7 @@ class WorkerSettings:
         import_jira_issue_history_job,
         import_jira_changelog_job,
         generate_diagnostic_report_arq_job,
+        run_diagnostic_onboarding_job,
     ]
     redis_settings = RedisSettings.from_dsn(settings.redis_url)
 

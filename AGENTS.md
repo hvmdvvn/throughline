@@ -38,6 +38,7 @@ Requires Python 3.12+. Create and activate a virtualenv first (`python -m venv .
 | Jira changelog import (admin, auth) | `POST /admin/jira/changelog` (enqueue arq job); `GET /admin/jira/changelog` (progress) |
 | Diagnostic report (arq) | `generate_diagnostic_report` job — args `org_id`, `range_start`, `range_end` (ISO dates) |
 | Diagnostic reports (auth) | `GET /reports` (list); `GET /reports/{id}` (metrics); `GET /reports/{id}/metrics/{metric_key}/evidence?page=&limit=` |
+| Diagnostic onboarding (auth) | `POST /onboarding/diagnostic` (start); `GET /onboarding/diagnostic` (progress); `POST /onboarding/diagnostic/continue` (after OAuth); `POST /onboarding/diagnostic/retry` (from failed). arq job `run_diagnostic_onboarding`. Web wizard: `/onboarding`. Email env: `EMAIL_ENABLED`, `SMTP_*`, `WEB_APP_URL` (see `.env.example`) |
 | Public Jira corpus (local/dev) | `python -m throughline.ingest.corpus` (fixture subset); optional `--remote [--source apache_issues|jenkins_issues]` (manual live fetch). ToS: `_docs/public-jira-corpus.md` |
 | Signal validation study (#26) | `python -m throughline.analytics.signal_validation` (fixture, ≥2 sources); optional `--remote` for live ASF+Jenkins. Findings: `_docs/signal-validation-study.md`; metrics: `_docs/artifacts/signal-validation-metrics.json` |
 | Web app install | `cd throughline/web && npm install` |

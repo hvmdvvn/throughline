@@ -1,4 +1,4 @@
-"""arq job functions (issue #9 / #13 / #14 / #22).
+"""arq job functions (issue #9 / #13 / #14 / #22 / #27).
 
 Retries use exponential backoff via ``arq.Retry(defer=...)``. Callers that need
 a retry should raise::
@@ -15,6 +15,10 @@ retries are secondary to those cursors.
 
 Diagnostic report generation (issue #22) snapshots analytics into a versioned
 ``diagnostic_reports`` row; failures leave ``failed`` / ``partial`` status.
+
+Diagnostic onboarding (issue #27) chains OAuth-gated import → changelog →
+report → email in ``run_diagnostic_onboarding``; progress lives on
+``diagnostic_onboardings`` so clients can leave and poll.
 """
 
 from __future__ import annotations
@@ -29,7 +33,9 @@ from throughline.analytics.diagnostic_report import generate_diagnostic_report
 from throughline.connectors.jira.import_changelog import run_changelog_import_for_org
 from throughline.connectors.jira.import_history import run_issue_history_import_for_org
 from throughline.db.session import get_session_factory
+from throughline.onboarding.diagnostic import run_pipeline
 from throughline.tenancy import use_org
+from throughline.workers.pool import arq_redis_pool
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +52,9 @@ CHANGELOG_JOB_KEEP_RESULT_SECONDS = 3600
 
 REPORT_JOB_MAX_TRIES = 5
 REPORT_JOB_KEEP_RESULT_SECONDS = 3600
+
+ONBOARDING_JOB_MAX_TRIES = 5
+ONBOARDING_JOB_KEEP_RESULT_SECONDS = 3600
 
 
 def exponential_backoff_seconds(
@@ -157,3 +166,36 @@ async def generate_diagnostic_report_job(
             }
 
     return await asyncio.to_thread(_run)
+
+
+async def run_diagnostic_onboarding(
+    ctx: dict[str, Any],
+    session_id: str,
+) -> dict[str, Any]:
+    """Run the guided diagnostic onboarding pipeline for one session (#27).
+
+    Chains issue import → changelog → report → email. When an import soft-stops
+    mid-backfill (``needs_continue``), re-enqueues itself so long imports keep
+    progressing without blocking the API.
+    """
+    _ = ctx
+    session_uuid = uuid.UUID(session_id)
+    session_factory = get_session_factory()
+
+    def _run() -> dict[str, Any]:
+        with session_factory() as db:
+            return run_pipeline(db, session_uuid)
+
+    result = await asyncio.to_thread(_run)
+    if result.get("needs_continue"):
+        async with arq_redis_pool() as redis:
+            job = await redis.enqueue_job(
+                "run_diagnostic_onboarding",
+                session_id,
+            )
+        result = {
+            **result,
+            "requeued": job is not None,
+            "requeue_job_id": job.job_id if job is not None else None,
+        }
+    return result
