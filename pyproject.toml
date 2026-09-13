@@ -29,6 +29,7 @@ dev = [
 
 [tool.setuptools.packages.find]
 include = ["throughline*"]
+exclude = ["throughline.web", "throughline.web.*"]
 
 [tool.setuptools.package-data]
 "throughline.ingest.corpus" = ["data/*.json"]
@@ -41,7 +42,7 @@ pythonpath = ["."]
 target-version = "py312"
 line-length = 100
 src = ["throughline", "tests", "alembic"]
-exclude = [".venv", "throughline.egg-info", ".pytest_cache", ".tmp"]
+exclude = [".venv", "throughline.egg-info", ".pytest_cache", ".tmp", "throughline/web"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
